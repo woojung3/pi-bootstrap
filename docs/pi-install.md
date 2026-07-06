@@ -37,5 +37,5 @@ pi update --extensions   # 패키지만 갱신
 
 ```bash
 pi list
-pi remove npm:@odinlayer/pi-statusbar
+pi remove npm:<package-name>
 ```

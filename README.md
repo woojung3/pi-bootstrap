@@ -40,9 +40,10 @@ cd pi-bootstrap
 `bootstrap.sh`가 수행하는 일:
 
 1. `config/models.json` → `~/.pi/agent/models.json` 복사
-2. `npm:@odinlayer/pi-statusbar` 설치
-3. `packages/pi-yolo` 로컬 설치
-4. `packages/pi-academy` 로컬 설치
+2. `npm:@narumitw/pi-statusline` 설치
+3. `npm:@narumitw/pi-goal` 설치
+4. `packages/pi-yolo` 로컬 설치
+5. `packages/pi-academy` 로컬 설치
 
 그 다음 수동 단계:
 
@@ -80,7 +81,7 @@ pi install git:github.com:<USER>/pi-bootstrap@v0.1.0
 
 - `~/.pi/agent/models.json`: LiteLLM 게이트웨이(`https://aigw.autocrypt.co.kr/v1`)를 OpenAI-compatible provider로 등록
 - `.envrc`: `export LITELLM_API_KEY="$LITELLM_MASTER_KEY"`
-- 설치 패키지: `pi install npm:@odinlayer/pi-statusbar`
+- 설치 패키지: `pi install npm:@narumitw/pi-statusline`, `pi install npm:@narumitw/pi-goal`
 - 직접 개발 패키지: `pi-yolo`, `pi-academy`
 - OpenAI 계열 모델: Pi의 `/login`으로 인증 후 `/model`에서 선택
 

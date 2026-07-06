@@ -44,10 +44,11 @@ direnv allow
 
 `.envrc`에는 실제 secret을 직접 쓰지 않는 것을 권장합니다. secret은 shell profile, password manager, 별도 private 파일에서 주입하세요.
 
-## 3. Statusbar 설치
+## 3. Statusline / Goal 설치
 
 ```bash
-pi install npm:@odinlayer/pi-statusbar
+pi install npm:@narumitw/pi-statusline
+pi install npm:@narumitw/pi-goal
 ```
 
 설치 결과는 `~/.pi/agent/settings.json`의 `packages` 배열과 `~/.pi/agent/npm/` 아래에 반영됩니다.

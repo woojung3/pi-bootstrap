@@ -19,7 +19,8 @@ if command -v direnv >/dev/null 2>&1 && [ ! -f "$ROOT/.envrc" ]; then
   echo "Created $ROOT/.envrc from envrc.example. Edit secrets, then run: direnv allow"
 fi
 
-pi install npm:@odinlayer/pi-statusbar
+pi install npm:@narumitw/pi-statusline
+pi install npm:@narumitw/pi-goal
 pi install "$ROOT/packages/pi-yolo"
 pi install "$ROOT/packages/pi-academy"
 
