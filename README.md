@@ -77,6 +77,38 @@ pi install git:github.com/woojung3/pi-bootstrap@v0.2.0
 
 루트 `package.json`이 두 extension을 함께 선언합니다.
 
+### GitHub에서 하나만 로드하기
+
+Pi의 `pi install` 명령은 git repo 전체를 패키지로 설치합니다. 대신 settings의 package filtering을 쓰면 같은 GitHub repo에서 원하는 extension만 로드할 수 있습니다. 이미 string form으로 설치했다면 `~/.pi/agent/settings.json`의 해당 `packages` 항목을 아래 object form으로 바꾸세요.
+
+`pi-yolo`만 로드:
+
+```json
+{
+  "packages": [
+    {
+      "source": "git:github.com/woojung3/pi-bootstrap@v0.2.0",
+      "extensions": ["packages/pi-yolo/index.ts"]
+    }
+  ]
+}
+```
+
+`pi-academy`만 로드:
+
+```json
+{
+  "packages": [
+    {
+      "source": "git:github.com/woojung3/pi-bootstrap@v0.2.0",
+      "extensions": ["packages/pi-academy/index.ts"]
+    }
+  ]
+}
+```
+
+프로젝트 한정으로 공유하려면 같은 내용을 `.pi/settings.json`에 넣거나 `pi install -l` 후 해당 항목을 object form으로 바꾸면 됩니다.
+
 ## 현재 사용 중인 핵심 설정
 
 - `~/.pi/agent/models.json`: LiteLLM 게이트웨이(`https://aigw.autocrypt.co.kr/v1`)를 OpenAI-compatible provider로 등록
