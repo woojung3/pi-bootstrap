@@ -1,13 +1,12 @@
 {
   "name": "pi-academy",
   "version": "1.0.0",
-  "description": "Interactive, state-aware cooperative educational academy for Pi — an 8-step hands-on master course covering project trust, session-tree time travel, surgical edits, skills, system prompt tuning, shell commands, package packaging, and custom renderers.",
+  "description": "Interactive Korean Pi academy — a 10-step hands-on course covering project trust, sessions, AGENTS.md, prompt templates, skills, settings, extensions, packages, SDK/RPC, and practical workflows.",
   "keywords": [
     "pi",
     "pi-package",
     "pi-coding-agent",
     "extension",
-    "plugin",
     "tutorial",
     "academy",
     "education"
@@ -18,7 +17,7 @@
     "index.ts",
     "lib/course.ts",
     "lib/types.ts",
-    "agents",
+    "tutor.md",
     "README.md",
     "SHARE.md",
     "BUILD_NOTES.md",

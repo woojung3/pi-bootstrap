@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const STATE_FILE = ".pi-academy.json";
 const TUTOR_SESSION = "pi-tutor.jsonl";
-const TUTOR_TOOLS = ["read", "grep", "glob", "bash", "write", "edit", "todo", "yield"];
+const TUTOR_TOOLS = ["read", "grep", "find", "ls"];
 const GRADUATED_LEVEL = PI_MASTER_COURSE.length + 1;
 
 export default function piAcademyExtension(pi: ExtensionAPI): void {
@@ -35,17 +35,15 @@ export default function piAcademyExtension(pi: ExtensionAPI): void {
 		const sessionFile = ctx.sessionManager.getSessionFile();
 		const isTutorActive = sessionFile ? path.basename(sessionFile) === TUTOR_SESSION : false;
 		if (isTutorActive) {
-			const tutorMd = await fs.readFile(path.join(__dirname, "agents", "tutor.md"), "utf-8");
-			const fmEnd = tutorMd.indexOf("---", 4);
-			const systemPrompt = tutorMd.slice(fmEnd + 3).trim();
-			return { systemPrompt };
+			const tutorMd = await fs.readFile(path.join(__dirname, "tutor.md"), "utf-8");
+			return { systemPrompt: stripFrontmatter(tutorMd) };
 		}
 		return undefined;
 	});
 
 	// ── /tutorial 명령어: 아카데미 메인 로직 ─────────────────────────────────
 	pi.registerCommand("tutorial", {
-		description: "대화형 실전 Pi 8단계 마스터 아카데미를 시작하거나 이어서 진행합니다!",
+		description: "대화형 실전 Pi 10단계 마스터 아카데미를 시작하거나 이어서 진행합니다!",
 		getArgumentCompletions: () => [
 			{ label: "status - 현재 진척도 확인", value: "status" },
 			{ label: "reset - 진척도 초기화", value: "reset" },
@@ -107,6 +105,14 @@ export default function piAcademyExtension(pi: ExtensionAPI): void {
 	});
 }
 
+function stripFrontmatter(markdown: string): string {
+	const trimmed = markdown.replace(/^\uFEFF/, "");
+	if (!trimmed.startsWith("---")) return markdown.trim();
+	const end = trimmed.indexOf("\n---", 3);
+	if (end === -1) return markdown.trim();
+	return trimmed.slice(end + 4).trim();
+}
+
 async function loadState(statePath: string): Promise<AcademyState> {
 	try {
 		const raw = await fs.readFile(statePath, "utf-8");
@@ -134,7 +140,7 @@ async function runVerifyLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, sta
 		if (step.onComplete) await step.onComplete(academyCtx);
 		state.currentLevel += 1;
 		await saveState(statePath, state);
-		pi.sendMessage({ customType: "pi-academy-status", content: step.statusEvent, display: false }, { deliverAs: "steer", triggerTurn: false });
+		pi.sendMessage({ customType: "pi-academy-status", content: step.statusEvent, display: false }, { deliverAs: "steer", triggerTurn: true });
 		if (state.currentLevel >= GRADUATED_LEVEL) {
 			await ctx.ui.confirm("🏆 PI ACADEMY 수료 🏆", step.unlockMessage);
 		} else {
@@ -153,16 +159,12 @@ async function runVerifyLoop(pi: ExtensionAPI, ctx: ExtensionCommandContext, sta
 }
 
 function buildAcademyContext(pi: ExtensionAPI, ctx: ExtensionCommandContext, args: string = ""): AcademyContext {
-	const sessionFile = ctx.sessionManager.getSessionFile();
-	const tutorDir = sessionFile ? path.dirname(sessionFile) : null;
 	return {
 		cwd: ctx.cwd,
 		cloneDir: path.join(ctx.cwd, "tutorial-clone"),
 		referenceDir: path.join(ctx.cwd, "pi-reference"),
-		tutorDir,
 		isProjectTrusted: () => ctx.isProjectTrusted(),
 		exec: (command, cmdArgs, options) => pi.exec(command, cmdArgs, options),
-		settingsGet: key => (pi as any).settings.get(key), // cast to any to access settings
 		args,
 	};
 }
@@ -191,7 +193,9 @@ async function activateTutorSession(pi: ExtensionAPI, ctx: ExtensionCommandConte
 async function resetAcademy(ctx: ExtensionCommandContext, statePath: string): Promise<void> {
 	const sessionFile = ctx.sessionManager.getSessionFile();
 	if (sessionFile) {
-		const tutorSessionFile = path.join(path.dirname(sessionFile), path.basename(sessionFile, ".jsonl"), TUTOR_SESSION);
+		const tutorSessionFile = path.basename(sessionFile) === TUTOR_SESSION
+			? sessionFile
+			: path.join(path.dirname(sessionFile), path.basename(sessionFile, ".jsonl"), TUTOR_SESSION);
 		await fs.rm(tutorSessionFile, { force: true }).catch(() => {});
 	}
 	await fs.rm(path.join(ctx.cwd, "tutorial-clone"), { recursive: true, force: true }).catch(() => {});
@@ -201,5 +205,5 @@ async function resetAcademy(ctx: ExtensionCommandContext, statePath: string): Pr
 }
 
 function isAcademyArtifact(name: string): boolean {
-	return name === ".git" || name === ".pi" || name === ".omp" || name === STATE_FILE || name === ".omp-academy.json" || name === ".pi-academy.json" || name === "tutorial-clone" || name === "pi-reference" || name === "omp-reference";
+	return name === ".git" || name === ".pi" || name === STATE_FILE || name === ".pi-academy.json" || name === "tutorial-clone" || name === "pi-reference";
 }

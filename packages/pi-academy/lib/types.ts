@@ -1,4 +1,4 @@
-import type { AcademyContext, CourseStep } from "./types";
+export type VerifyResult = boolean | { success: false; errorReason: string };
 
 /** 채점/처방 로직이 디스크·설정을 검사할 때 쓰는 무손상 런타임 컨텍스트.
  *  ExtensionCommandContext 의 축약판 — 순수 함수로 테스트 가능하도록 최소 표면만 노출한다. */
@@ -9,14 +9,10 @@ export interface AcademyContext {
 	cloneDir: string;
 	/** Pi 코어 참조 클론 경로 (`<cwd>/pi-reference`). */
 	referenceDir: string;
-	/** 튜터 세션(pi-tutor.jsonl)이 담긴 디렉터리. 세션 분기 흔적 탐지에 사용. null 이면 미탐지. */
-	tutorDir: string | null;
 	/** 프로젝트 폴더의 신뢰 여부 반환. */
 	isProjectTrusted(): boolean;
 	/** 셸 명령 실행 (git 로그/브랜치 조회 등). ExtensionAPI.exec 를 위임받는다. */
 	exec(command: string, args: string[], options?: { cwd?: string }): Promise<{ stdout: string; stderr: string; code: number }>;
-	/** 병합된 유효 설정 조회. */
-	settingsGet(key: string): unknown;
 	/** 사용자가 입력한 명령어 인자값 (퀴즈 정답 등). */
 	args: string;
 }
