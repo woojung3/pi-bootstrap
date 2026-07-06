@@ -15,10 +15,10 @@ Local development:
 pi install /path/to/pi-yolo
 ```
 
-GitHub package:
+GitHub package (from the `pi-bootstrap` monorepo; installs bundled extensions including `pi-yolo`):
 
 ```bash
-pi install git:github.com/<USER>/pi-yolo@v1.1.0
+pi install git:github.com/woojung3/pi-bootstrap@v0.2.0
 ```
 
 npm package:

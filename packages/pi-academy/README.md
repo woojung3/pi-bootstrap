@@ -50,7 +50,15 @@ cp -r . ~/.pi/agent/extensions/pi-academy
 
 Pi를 재시작한 뒤 `/tutorial`을 실행하세요.
 
-### B안 — 1회 로드
+### B안 — GitHub package 설치
+
+`pi-bootstrap` monorepo에서 번들 extension으로 설치합니다.
+
+```bash
+pi install git:github.com/woojung3/pi-bootstrap@v0.2.0
+```
+
+### C안 — 1회 로드
 
 ```bash
 pi --extension /path/to/pi-academy

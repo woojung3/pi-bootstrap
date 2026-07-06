@@ -32,7 +32,7 @@ pi-bootstrap/
 ## 빠른 복원
 
 ```bash
-git clone git@github.com:<USER>/pi-bootstrap.git
+git clone https://github.com/woojung3/pi-bootstrap.git
 cd pi-bootstrap
 ./scripts/bootstrap.sh
 ```
@@ -72,7 +72,7 @@ pi install ./packages/pi-academy
 GitHub repo 전체를 하나의 Pi package로 설치:
 
 ```bash
-pi install git:github.com:<USER>/pi-bootstrap@v0.1.0
+pi install git:github.com/woojung3/pi-bootstrap@v0.2.0
 ```
 
 루트 `package.json`이 두 extension을 함께 선언합니다.
