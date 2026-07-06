@@ -1,0 +1,32 @@
+{
+  "name": "pi-yolo",
+  "version": "1.1.0",
+  "description": "Always-Ask tool execution gate for pi. Prompts before write/edit/bash (read-only tools auto-approved). Toggle with /yolo.",
+  "keywords": [
+    "pi",
+    "pi-package",
+    "pi-coding-agent",
+    "extension",
+    "approval",
+    "security"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "index.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
+  }
+}

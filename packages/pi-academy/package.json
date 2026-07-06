@@ -1,0 +1,38 @@
+{
+  "name": "pi-academy",
+  "version": "1.0.0",
+  "description": "Interactive, state-aware cooperative educational academy for Pi — an 8-step hands-on master course covering project trust, session-tree time travel, surgical edits, skills, system prompt tuning, shell commands, package packaging, and custom renderers.",
+  "keywords": [
+    "pi",
+    "pi-package",
+    "pi-coding-agent",
+    "extension",
+    "plugin",
+    "tutorial",
+    "academy",
+    "education"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "index.ts",
+    "lib/course.ts",
+    "lib/types.ts",
+    "agents",
+    "README.md",
+    "SHARE.md",
+    "BUILD_NOTES.md",
+    "LICENSE"
+  ],
+  "pi": {
+    "extensions": ["./index.ts"]
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3"
+  }
+}

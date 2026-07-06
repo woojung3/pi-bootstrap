@@ -1,0 +1,192 @@
+{
+  "providers": {
+    "litellm": {
+      "baseUrl": "https://aigw.autocrypt.co.kr/v1",
+      "api": "openai-completions",
+      "apiKey": "$LITELLM_API_KEY",
+      "compat": {
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": false
+      },
+      "models": [
+        {
+          "id": "claude-sonnet-4-6",
+          "name": "Claude Sonnet 4.6",
+          "contextWindow": 1000000,
+          "maxTokens": 64000,
+          "input": [
+            "text",
+            "image"
+          ]
+        },
+        {
+          "id": "sonnet",
+          "name": "Sonnet",
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ]
+        },
+        {
+          "id": "qwen3-coder-480b",
+          "name": "Qwen3 Coder 480B",
+          "contextWindow": 262144,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "opus",
+          "name": "Opus",
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ]
+        },
+        {
+          "id": "haiku",
+          "name": "Haiku",
+          "contextWindow": 200000,
+          "maxTokens": 8192,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "deepseek-v3.2",
+          "name": "DeepSeek V3.2",
+          "contextWindow": 163840,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "gemma-4.26b",
+          "name": "Gemma 4.26B",
+          "contextWindow": 256000,
+          "maxTokens": 128000,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "deepseek-r1",
+          "name": "DeepSeek R1 (Reasoning)",
+          "contextWindow": 65336,
+          "maxTokens": 8192,
+          "input": [
+            "text"
+          ],
+          "reasoning": true
+        },
+        {
+          "id": "qwen3-80b-instruct",
+          "name": "Qwen3 80B Instruct",
+          "contextWindow": 262144,
+          "maxTokens": 262144,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "claude-haiku-4-5",
+          "name": "Claude Haiku 4.5",
+          "contextWindow": 200000,
+          "maxTokens": 8192,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "glm-5",
+          "name": "GLM 5",
+          "contextWindow": 200000,
+          "maxTokens": 128000,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "gemini-3.1-flash-lite",
+          "name": "Gemini 3.1 Flash Lite",
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "input": [
+            "text",
+            "image"
+          ]
+        },
+        {
+          "id": "codestral-2",
+          "name": "Codestral 2",
+          "contextWindow": 128000,
+          "maxTokens": 128000,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "gemini-3.5-flash",
+          "name": "Gemini 3.5 Flash",
+          "contextWindow": 1048576,
+          "maxTokens": 65535,
+          "input": [
+            "text",
+            "image"
+          ]
+        },
+        {
+          "id": "qwen3-80b-thinking",
+          "name": "Qwen3 80B Thinking",
+          "contextWindow": 262144,
+          "maxTokens": 262144,
+          "input": [
+            "text"
+          ],
+          "reasoning": true
+        },
+        {
+          "id": "claude-opus-4-8",
+          "name": "Claude Opus 4.8",
+          "contextWindow": 1000000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ]
+        },
+        {
+          "id": "llama-4-maverick",
+          "name": "Llama 4 Maverick",
+          "contextWindow": 128000,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "gpt-oss-120b",
+          "name": "GPT OSS 120B",
+          "contextWindow": 131072,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "embedding",
+          "name": "Embedding Model",
+          "contextWindow": 2048,
+          "input": [
+            "text"
+          ]
+        }
+      ]
+    }
+  }
+}
