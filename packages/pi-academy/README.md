@@ -55,7 +55,7 @@ Pi를 재시작한 뒤 `/tutorial`을 실행하세요.
 `pi-bootstrap` monorepo에서 번들 extension으로 설치합니다.
 
 ```bash
-pi install git:github.com/woojung3/pi-bootstrap@v0.2.0
+pi install git:github.com/woojung3/pi-bootstrap@v0.3.0
 ```
 
 ### C안 — 1회 로드

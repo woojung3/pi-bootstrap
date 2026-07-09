@@ -18,7 +18,7 @@ pi install /path/to/pi-yolo
 GitHub package (from the `pi-bootstrap` monorepo; installs bundled extensions including `pi-yolo`):
 
 ```bash
-pi install git:github.com/woojung3/pi-bootstrap@v0.2.0
+pi install git:github.com/woojung3/pi-bootstrap@v0.3.0
 ```
 
 npm package:
