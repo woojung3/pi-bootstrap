@@ -14,7 +14,11 @@
   "pi": {
     "extensions": [
       "./packages/pi-yolo/index.ts",
-      "./packages/pi-academy/index.ts"
+      "./packages/pi-academy/index.ts",
+      "./packages/pi-google-data-store-search/index.ts"
     ]
+  },
+  "dependencies": {
+    "google-auth-library": "^10.6.2"
   }
 }

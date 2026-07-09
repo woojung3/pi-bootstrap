@@ -1,0 +1,42 @@
+{
+  "name": "pi-google-data-store-search",
+  "version": "0.1.0",
+  "description": "Pi extension that searches configured Google Gemini Enterprise / Vertex AI Search Data Store sources.",
+  "keywords": [
+    "pi",
+    "pi-package",
+    "pi-coding-agent",
+    "extension",
+    "google-data-store",
+    "vertex-ai-search",
+    "discovery-engine",
+    "gemini-enterprise"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "files": [
+    "index.ts",
+    "README.md",
+    "google-data-store-sources.example.json"
+  ],
+  "pi": {
+    "extensions": [
+      "./index.ts"
+    ]
+  },
+  "dependencies": {
+    "google-auth-library": "^10.6.2"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": {
+      "optional": true
+    },
+    "typebox": {
+      "optional": true
+    }
+  }
+}

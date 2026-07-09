@@ -1,0 +1,30 @@
+[
+  {
+    "name": "confluence-cam-pages",
+    "aliases": ["confluence", "wiki", "cam-wiki", "cam-confluence"],
+    "dataStoreId": "acme-confluence-connector_1234567890123_page",
+    "confluenceSpaceKey": "CAM",
+    "description": "Confluence CAM space pages"
+  },
+  {
+    "name": "confluence-cam-attachments",
+    "aliases": ["confluence-attachments", "wiki-attachments", "cam-attachments"],
+    "dataStoreId": "acme-confluence-connector_1234567890123_attachment",
+    "confluenceSpaceKey": "CAM",
+    "description": "Files attached to Confluence CAM space pages"
+  },
+  {
+    "name": "sharepoint-cam-files",
+    "aliases": ["sharepoint", "sharepoint-files", "cam-sharepoint", "office-docs", "documents"],
+    "dataStoreId": "acme-sharepoint-connector_9876543210987_file",
+    "sharepointSiteId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+    "description": "SharePoint CAM site document library files"
+  },
+  {
+    "name": "sharepoint-cam-pages",
+    "aliases": ["sharepoint-pages", "cam-site-pages", "site-pages"],
+    "dataStoreId": "acme-sharepoint-connector_9876543210987_page",
+    "sharepointSiteName": "CAM",
+    "description": "SharePoint CAM site pages"
+  }
+]
