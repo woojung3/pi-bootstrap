@@ -51,7 +51,6 @@ discoveryengine.servingConfigs.search
 export GOOGLE_CLOUD_PROJECT="acme-gemini-enterprise-123456"
 export GOOGLE_CLOUD_LOCATION="global"
 export GOOGLE_DATA_STORE_COLLECTION="default_collection"
-export GOOGLE_DATA_STORE_SERVING_CONFIG="default_config"
 export GOOGLE_DATA_STORE_PAGE_SIZE="5"
 ```
 
@@ -62,10 +61,37 @@ What these values mean:
 | `GOOGLE_CLOUD_PROJECT` | `acme-gemini-enterprise-123456` | Google Cloud project **ID** containing the Data Store. |
 | `GOOGLE_CLOUD_LOCATION` | `global` | Most Gemini Enterprise / Agent Builder Data Stores use `global`. |
 | `GOOGLE_DATA_STORE_COLLECTION` | `default_collection` | Google commonly creates connector Data Stores under `default_collection`. |
-| `GOOGLE_DATA_STORE_SERVING_CONFIG` | `default_config` | Default Discovery Engine serving config name. |
 | `GOOGLE_DATA_STORE_PAGE_SIZE` | `5` | Default number of results, clamped to 1-20. |
 
-`default_collection` and `default_config` are intentionally shown as real-looking defaults because they are commonly the actual values.
+`default_collection` is intentionally shown as a real-looking default because it is commonly the actual value.
+
+### Engine ID setting (recommended)
+
+By default, the extension calls the Data Store search endpoint directly, which returns short snippet excerpts only.
+
+To get full document paragraph extraction (the same depth that Gemini Enterprise web app uses), set the Engine ID:
+
+```bash
+export GOOGLE_DISCOVERY_ENGINE_ID="your-engine-id"
+```
+
+How to find your Engine ID: go to **Agent Builder → Apps** in Google Cloud Console and copy the engine ID from the URL or the app settings.
+
+Optionally, set the serving config name if it differs from the default:
+
+```bash
+export GOOGLE_DISCOVERY_ENGINE_SERVING_CONFIG="default_search"
+```
+
+With `GOOGLE_DISCOVERY_ENGINE_ID` set, the tool calls the engine-level endpoint and includes extractive segment extraction. The model receives full table and paragraph content from the matched documents, not just short snippets.
+
+Without `GOOGLE_DISCOVERY_ENGINE_ID`, the tool falls back to the Data Store endpoint and returns snippet-only results.
+
+| Variable | Example | Notes |
+|---|---|---|
+| `GOOGLE_DISCOVERY_ENGINE_ID` | `acme-engine_1234567890123` | Engine/App ID from Agent Builder. Enables full content extraction. |
+| `GOOGLE_DISCOVERY_ENGINE_SERVING_CONFIG` | `default_search` | Defaults to `default_search`. |
+| `GOOGLE_DATA_STORE_SERVING_CONFIG` | `default_config` | Used only in fallback (no engine ID). Defaults to `default_config`. |
 
 ### Source catalog
 

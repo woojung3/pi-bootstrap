@@ -28,9 +28,15 @@ type SearchParams = {
   filter?: string;
 };
 
+type ExtractedSegment = {
+  content: string;
+  relevanceScore?: number;
+};
+
 type NormalizedResult = {
   title?: string;
   uri?: string;
+  segments: ExtractedSegment[];
   snippet?: string;
   documentName?: string;
   id?: string;
@@ -40,7 +46,7 @@ type NormalizedResult = {
 type SearchResultDetails = {
   query: string;
   source: DataStoreSource;
-  servingConfig: string;
+  searchEndpoint: string;
   results: NormalizedResult[];
 };
 
@@ -168,7 +174,9 @@ function chooseSource(sources: DataStoreSource[], requestedSource: string | unde
     const exact = sources.find((source) => sourceTerms(source).includes(needle));
     if (exact) return exact;
 
-    const partialMatches = sources.filter((source) => sourceTerms(source).some((term) => term.includes(needle) || needle.includes(term)));
+    const partialMatches = sources.filter((source) =>
+      sourceTerms(source).some((term) => term.includes(needle) || needle.includes(term)),
+    );
     if (partialMatches.length === 1) return partialMatches[0];
 
     throw new Error(`Unknown Google Data Store source: ${requestedSource}\nAvailable sources:\n${listSources(sources)}`);
@@ -177,7 +185,9 @@ function chooseSource(sources: DataStoreSource[], requestedSource: string | unde
   if (sources.length === 1) return sources[0];
 
   const normalizedQuery = query.toLowerCase();
-  const queryMatches = sources.filter((source) => sourceTerms(source).some((term) => normalizedQuery.includes(term)));
+  const queryMatches = sources.filter((source) =>
+    sourceTerms(source).some((term) => normalizedQuery.includes(term)),
+  );
   if (queryMatches.length === 1) return queryMatches[0];
 
   throw new Error(
@@ -185,13 +195,41 @@ function chooseSource(sources: DataStoreSource[], requestedSource: string | unde
   );
 }
 
-function buildServingConfig(source: DataStoreSource): string {
+/**
+ * Build the search endpoint URL.
+ *
+ * Priority:
+ * 1. GOOGLE_DISCOVERY_ENGINE_ID env var → engine/servingConfig endpoint
+ *    (Enterprise edition: supports extractive segments, LLM add-on, etc.)
+ * 2. Fallback → dataStore/servingConfig endpoint
+ *    (Standard edition: snippet-only)
+ *
+ * When using the engine endpoint, the dataStore to search is narrowed via
+ * the `dataStoreSpecs` request field so per-source selection still works.
+ */
+function buildSearchEndpoint(source: DataStoreSource): { url: string; useDataStoreSpecs: boolean } {
   const project = source.project || requiredEnv("GOOGLE_CLOUD_PROJECT");
   const location = source.location || envOrDefault("GOOGLE_CLOUD_LOCATION", "global");
   const collection = source.collection || envOrDefault("GOOGLE_DATA_STORE_COLLECTION", "default_collection");
-  const servingConfig = source.servingConfig || envOrDefault("GOOGLE_DATA_STORE_SERVING_CONFIG", "default_config");
+  const engineId = process.env.GOOGLE_DISCOVERY_ENGINE_ID;
 
-  return `projects/${project}/locations/${location}/collections/${collection}/dataStores/${source.dataStoreId}/servingConfigs/${servingConfig}`;
+  if (engineId) {
+    const engineServingConfig = envOrDefault("GOOGLE_DISCOVERY_ENGINE_SERVING_CONFIG", "default_search");
+    const url = `https://discoveryengine.googleapis.com/v1/projects/${project}/locations/${location}/collections/${collection}/engines/${engineId}/servingConfigs/${engineServingConfig}:search`;
+    return { url, useDataStoreSpecs: true };
+  }
+
+  // Fallback: dataStore direct search (standard edition, snippet only)
+  const dataStoreServingConfig = source.servingConfig || envOrDefault("GOOGLE_DATA_STORE_SERVING_CONFIG", "default_config");
+  const url = `https://discoveryengine.googleapis.com/v1/projects/${project}/locations/${location}/collections/${collection}/dataStores/${source.dataStoreId}/servingConfigs/${dataStoreServingConfig}:search`;
+  return { url, useDataStoreSpecs: false };
+}
+
+function buildDataStoreResourceName(source: DataStoreSource): string {
+  const project = source.project || requiredEnv("GOOGLE_CLOUD_PROJECT");
+  const location = source.location || envOrDefault("GOOGLE_CLOUD_LOCATION", "global");
+  const collection = source.collection || envOrDefault("GOOGLE_DATA_STORE_COLLECTION", "default_collection");
+  return `projects/${project}/locations/${location}/collections/${collection}/dataStores/${source.dataStoreId}`;
 }
 
 function quoteFilterValue(value: string): string {
@@ -224,25 +262,43 @@ function buildSourceFilter(source: DataStoreSource): string | undefined {
   return clauses.length > 0 ? clauses.join(" AND ") : undefined;
 }
 
-function extractSnippet(derived: Record<string, unknown>): string | undefined {
+function extractSegments(derived: Record<string, unknown>): ExtractedSegment[] {
+  const segments: ExtractedSegment[] = [];
+
+  // extractive_segments: full paragraph/table chunks (enterprise edition)
+  const rawSegments = derived.extractive_segments || derived.extractiveSegments;
+  if (Array.isArray(rawSegments) && rawSegments.length > 0) {
+    for (const seg of rawSegments) {
+      const s = asRecord(seg);
+      const content = stringField(s, "content");
+      if (content) {
+        const score = typeof s.relevanceScore === "number" ? s.relevanceScore : undefined;
+        segments.push({ content, relevanceScore: score });
+      }
+    }
+    if (segments.length > 0) return segments;
+  }
+
+  // extractive_answers: shorter answer-style excerpts (enterprise edition)
+  const rawAnswers = derived.extractive_answers || derived.extractiveAnswers;
+  if (Array.isArray(rawAnswers) && rawAnswers.length > 0) {
+    for (const ans of rawAnswers) {
+      const a = asRecord(ans);
+      const content = stringField(a, "content");
+      if (content) segments.push({ content });
+    }
+    if (segments.length > 0) return segments;
+  }
+
+  return segments;
+}
+
+function extractFallbackSnippet(derived: Record<string, unknown>): string | undefined {
   const snippets = derived.snippets;
   if (Array.isArray(snippets) && snippets.length > 0) {
     const first = asRecord(snippets[0]);
     return stringField(first, "snippet") || stringField(first, "htmlSnippet");
   }
-
-  const extractiveAnswers = derived.extractive_answers || derived.extractiveAnswers;
-  if (Array.isArray(extractiveAnswers) && extractiveAnswers.length > 0) {
-    const first = asRecord(extractiveAnswers[0]);
-    return stringField(first, "content");
-  }
-
-  const extractiveSegments = derived.extractive_segments || derived.extractiveSegments;
-  if (Array.isArray(extractiveSegments) && extractiveSegments.length > 0) {
-    const first = asRecord(extractiveSegments[0]);
-    return stringField(first, "content");
-  }
-
   return undefined;
 }
 
@@ -265,15 +321,13 @@ function normalizeResult(result: unknown, sourceName: string): NormalizedResult 
     stringField(structData, "link") ||
     stringField(derivedStructData, "link");
 
-  const snippet =
-    extractSnippet(derivedStructData) ||
-    stringField(derivedStructData, "snippet") ||
-    stringField(structData, "snippet") ||
-    stringField(structData, "description");
+  const segments = extractSegments(derivedStructData);
+  const snippet = segments.length === 0 ? extractFallbackSnippet(derivedStructData) : undefined;
 
   return {
     title,
     uri,
+    segments,
     snippet,
     documentName: stringField(document, "name"),
     id: stringField(document, "id"),
@@ -288,13 +342,22 @@ function formatResults(results: NormalizedResult[], source: DataStoreSource): st
 
   return results
     .map((result, index) => {
-      const lines = [`${index + 1}. ${result.title || result.id || "Untitled document"}`, `Source: ${result.source}`];
+      const lines: string[] = [`${index + 1}. ${result.title || result.id || "Untitled document"}`];
+      lines.push(`Source: ${result.source}`);
 
       if (result.uri) {
         lines.push(`URL: ${result.uri}`);
       }
 
-      if (result.snippet) {
+      if (result.segments.length > 0) {
+        // Full content segments: join them so the model sees the complete context
+        lines.push("Content:");
+        for (const seg of result.segments) {
+          lines.push(seg.content);
+          lines.push("---");
+        }
+      } else if (result.snippet) {
+        // Fallback: only snippet available (standard edition)
         lines.push(`Snippet: ${result.snippet}`);
       }
 
@@ -349,7 +412,8 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
     }> {
       const sources = await loadConfiguredSources();
       const selectedSource = chooseSource(sources, params.source, params.query);
-      const servingConfig = buildServingConfig(selectedSource);
+      const { url, useDataStoreSpecs } = buildSearchEndpoint(selectedSource);
+
       const pageSize = Math.min(
         Math.max(
           params.pageSize ?? Number.parseInt(process.env.GOOGLE_DATA_STORE_PAGE_SIZE || "5", 10),
@@ -374,8 +438,6 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
         "x-goog-user-project": project,
       };
 
-      const url = `https://discoveryengine.googleapis.com/v1/${servingConfig}:search`;
-
       const body: Record<string, unknown> = {
         query: params.query,
         pageSize,
@@ -383,8 +445,20 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
         spellCorrectionSpec: { mode: "AUTO" },
         contentSearchSpec: {
           snippetSpec: { returnSnippet: true },
+          extractiveContentSpec: {
+            maxExtractiveSegmentCount: 3,
+            maxExtractiveAnswerCount: 3,
+            returnExtractiveSegmentScore: true,
+          },
         },
       };
+
+      // When using engine endpoint, narrow to specific dataStore via dataStoreSpecs
+      if (useDataStoreSpecs) {
+        body.dataStoreSpecs = [
+          { dataStore: buildDataStoreResourceName(selectedSource) },
+        ];
+      }
 
       const filter = params.filter || buildSourceFilter(selectedSource) || process.env.GOOGLE_DATA_STORE_FILTER;
       if (filter) {
@@ -400,7 +474,9 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
 
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(`Google Data Store search failed for source '${selectedSource.name}': HTTP ${response.status} ${text}`);
+        throw new Error(
+          `Google Data Store search failed for source '${selectedSource.name}': HTTP ${response.status} ${text}`,
+        );
       }
 
       const payload = (await response.json()) as { results?: unknown[] };
@@ -412,7 +488,7 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
         details: {
           query: params.query,
           source: selectedSource,
-          servingConfig,
+          searchEndpoint: url,
           results,
         },
       };
