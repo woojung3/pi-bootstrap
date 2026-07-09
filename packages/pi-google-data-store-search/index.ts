@@ -2,6 +2,8 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { GoogleAuth } from "google-auth-library";
 import { readFile } from "node:fs/promises";
+import { homedir } from "node:os";
+import { join } from "node:path";
 
 interface DataStoreSource {
   name: string;
@@ -99,14 +101,22 @@ function normalizeSource(value: unknown): DataStoreSource {
 async function loadConfiguredSources(): Promise<DataStoreSource[]> {
   const sourcesFile = process.env.GOOGLE_DATA_STORE_SOURCES_FILE;
   const sourcesJson = process.env.GOOGLE_DATA_STORE_SOURCES;
+  const defaultSourcesFile = join(homedir(), ".config", "pi", "google-data-store-sources.json");
 
-  if (sourcesFile) {
-    const content = await readFile(sourcesFile, "utf-8");
-    const parsed = JSON.parse(content) as unknown;
-    if (!Array.isArray(parsed)) {
-      throw new Error("GOOGLE_DATA_STORE_SOURCES_FILE must contain a JSON array.");
+  for (const candidate of [sourcesFile, defaultSourcesFile]) {
+    if (!candidate) continue;
+    try {
+      const content = await readFile(candidate, "utf-8");
+      const parsed = JSON.parse(content) as unknown;
+      if (!Array.isArray(parsed)) {
+        throw new Error(`${candidate} must contain a JSON array.`);
+      }
+      return parsed.map(normalizeSource);
+    } catch (error) {
+      if (candidate === sourcesFile) {
+        throw error;
+      }
     }
-    return parsed.map(normalizeSource);
   }
 
   if (sourcesJson) {
@@ -130,7 +140,7 @@ async function loadConfiguredSources(): Promise<DataStoreSource[]> {
   }
 
   throw new Error(
-    "Missing Google Data Store source configuration. Set GOOGLE_DATA_STORE_SOURCES_FILE, GOOGLE_DATA_STORE_SOURCES, or GOOGLE_DATA_STORE_ID.",
+    "Missing Google Data Store source configuration. Create ~/.config/pi/google-data-store-sources.json, or set GOOGLE_DATA_STORE_SOURCES_FILE, GOOGLE_DATA_STORE_SOURCES, or GOOGLE_DATA_STORE_ID.",
   );
 }
 

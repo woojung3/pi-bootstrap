@@ -76,7 +76,15 @@ mkdir -p "$HOME/.config/pi"
 cp packages/pi-google-data-store-search/google-data-store-sources.example.json \
   "$HOME/.config/pi/google-data-store-sources.json"
 
+# Optional: the extension auto-detects this default path.
+# Export this only if you store the file somewhere else.
 export GOOGLE_DATA_STORE_SOURCES_FILE="$HOME/.config/pi/google-data-store-sources.json"
+```
+
+The extension automatically reads this default file when it exists:
+
+```text
+~/.config/pi/google-data-store-sources.json
 ```
 
 Edit the private file with your real Data Store IDs and optional Confluence/SharePoint scope restrictions:
