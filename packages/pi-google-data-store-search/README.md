@@ -69,7 +69,17 @@ What these values mean:
 
 By default, the extension calls the Data Store search endpoint directly, which returns short snippet excerpts only.
 
-To get full document paragraph extraction (the same depth that Gemini Enterprise web app uses), set the Engine ID:
+To get full document paragraph extraction (the same depth that Gemini Enterprise web app uses), configure an Engine ID. Prefer setting it per source in `google-data-store-sources.json`:
+
+```json
+{
+  "name": "confluence-cam-pages",
+  "dataStoreId": "acme-confluence-connector_1234567890123_page",
+  "engineId": "acme-gemini-enterprise_1234567890123"
+}
+```
+
+You may also set it globally with an environment variable:
 
 ```bash
 export GOOGLE_DISCOVERY_ENGINE_ID="your-engine-id"
@@ -83,15 +93,38 @@ Optionally, set the serving config name if it differs from the default:
 export GOOGLE_DISCOVERY_ENGINE_SERVING_CONFIG="default_search"
 ```
 
-With `GOOGLE_DISCOVERY_ENGINE_ID` set, the tool calls the engine-level endpoint and includes extractive segment extraction. The model receives full table and paragraph content from the matched documents, not just short snippets.
+With `engineId` or `GOOGLE_DISCOVERY_ENGINE_ID` set, the tool calls the engine-level endpoint and includes extractive segment extraction. A small subagent then reads those extracted table/paragraph chunks and returns a concise answer plus summaries of the searched documents. The caller sees a compact, citation-friendly result instead of huge raw excerpts.
 
-Without `GOOGLE_DISCOVERY_ENGINE_ID`, the tool falls back to the Data Store endpoint and returns snippet-only results.
+Without an engine ID, the tool falls back to the Data Store endpoint and has only snippet-level evidence available.
 
 | Variable | Example | Notes |
 |---|---|---|
-| `GOOGLE_DISCOVERY_ENGINE_ID` | `acme-engine_1234567890123` | Engine/App ID from Agent Builder. Enables full content extraction. |
+| `GOOGLE_DISCOVERY_ENGINE_ID` | `acme-engine_1234567890123` | Optional global Engine/App ID from Agent Builder. Enables full content extraction. |
 | `GOOGLE_DISCOVERY_ENGINE_SERVING_CONFIG` | `default_search` | Defaults to `default_search`. |
 | `GOOGLE_DATA_STORE_SERVING_CONFIG` | `default_config` | Used only in fallback (no engine ID). Defaults to `default_config`. |
+
+### Subagent synthesis
+
+By default, the tool runs a pi subagent after search. The subagent receives the raw extracted evidence and returns:
+
+1. `Answer` — a refined answer to the user's question.
+2. `Documents searched` — one summary per searched document, preserving title and URL.
+3. `Limitations` — uncertainty or missing evidence, when relevant.
+
+This keeps the main conversation context small even when Discovery Engine returns large table/paragraph chunks.
+
+The subagent uses the current pi model when available. You can override it:
+
+```bash
+export GOOGLE_DATA_STORE_SUBAGENT_PROVIDER="litellm"
+export GOOGLE_DATA_STORE_SUBAGENT_MODEL="gemini-3.5-flash"
+```
+
+To disable subagent synthesis and return raw excerpts directly:
+
+```bash
+export GOOGLE_DATA_STORE_SUBAGENT=0
+```
 
 ### Source catalog
 
@@ -121,6 +154,7 @@ Edit the private file with your real Data Store IDs and optional Confluence/Shar
     "name": "confluence-cam-pages",
     "aliases": ["confluence", "wiki", "cam-wiki"],
     "dataStoreId": "acme-confluence-connector_1234567890123_page",
+    "engineId": "acme-gemini-enterprise_1234567890123",
     "confluenceSpaceKey": "CAM",
     "description": "Confluence CAM space pages"
   },
@@ -128,6 +162,7 @@ Edit the private file with your real Data Store IDs and optional Confluence/Shar
     "name": "sharepoint-cam-files",
     "aliases": ["sharepoint", "office-docs", "documents"],
     "dataStoreId": "acme-sharepoint-connector_9876543210987_file",
+    "engineId": "acme-gemini-enterprise_1234567890123",
     "sharepointSiteId": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
     "description": "SharePoint CAM site document library files"
   }
@@ -220,7 +255,9 @@ Supported fields:
 | `project` | no | Overrides `GOOGLE_CLOUD_PROJECT`. |
 | `location` | no | Overrides `GOOGLE_CLOUD_LOCATION`. |
 | `collection` | no | Overrides `GOOGLE_DATA_STORE_COLLECTION`. |
-| `servingConfig` | no | Overrides `GOOGLE_DATA_STORE_SERVING_CONFIG`. |
+| `servingConfig` | no | Overrides `GOOGLE_DATA_STORE_SERVING_CONFIG` for fallback Data Store search. |
+| `engineId` | no | Per-source Engine/App ID. Enables extractive segments and subagent synthesis. |
+| `engineServingConfig` | no | Per-source engine serving config. Defaults to `default_search`. |
 | `confluenceSpaceKey` | no | Restrict Confluence results to a space key, e.g. `SEC` or `CAM`. |
 | `confluenceSpaceName` | no | Restrict Confluence results to a space name. |
 | `sharepointSiteId` | no | Restrict SharePoint file/attachment results to a site ID. |

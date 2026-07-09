@@ -1,7 +1,9 @@
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 import { GoogleAuth } from "google-auth-library";
-import { readFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { homedir } from "node:os";
 import { join } from "node:path";
 
@@ -14,6 +16,8 @@ interface DataStoreSource {
   location?: string;
   collection?: string;
   servingConfig?: string;
+  engineId?: string;
+  engineServingConfig?: string;
   filter?: string;
   confluenceSpaceKey?: string;
   confluenceSpaceName?: string;
@@ -48,6 +52,18 @@ type SearchResultDetails = {
   source: DataStoreSource;
   searchEndpoint: string;
   results: NormalizedResult[];
+  synthesized?: SynthesizedSearchResult;
+};
+
+type SynthesizedSearchResult = {
+  answer: string;
+  documents: Array<{
+    title?: string;
+    url?: string;
+    source?: string;
+    summary: string;
+  }>;
+  limitations?: string[];
 };
 
 function requiredEnv(name: string): string {
@@ -96,6 +112,8 @@ function normalizeSource(value: unknown): DataStoreSource {
     location: stringField(source, "location"),
     collection: stringField(source, "collection"),
     servingConfig: stringField(source, "servingConfig") || stringField(source, "serving_config"),
+    engineId: stringField(source, "engineId") || stringField(source, "engine_id"),
+    engineServingConfig: stringField(source, "engineServingConfig") || stringField(source, "engine_serving_config"),
     filter: stringField(source, "filter"),
     confluenceSpaceKey: stringField(source, "confluenceSpaceKey") || stringField(source, "confluence_space_key"),
     confluenceSpaceName: stringField(source, "confluenceSpaceName") || stringField(source, "confluence_space_name"),
@@ -211,10 +229,10 @@ function buildSearchEndpoint(source: DataStoreSource): { url: string; useDataSto
   const project = source.project || requiredEnv("GOOGLE_CLOUD_PROJECT");
   const location = source.location || envOrDefault("GOOGLE_CLOUD_LOCATION", "global");
   const collection = source.collection || envOrDefault("GOOGLE_DATA_STORE_COLLECTION", "default_collection");
-  const engineId = process.env.GOOGLE_DISCOVERY_ENGINE_ID;
+  const engineId = source.engineId || process.env.GOOGLE_DISCOVERY_ENGINE_ID;
 
   if (engineId) {
-    const engineServingConfig = envOrDefault("GOOGLE_DISCOVERY_ENGINE_SERVING_CONFIG", "default_search");
+    const engineServingConfig = source.engineServingConfig || envOrDefault("GOOGLE_DISCOVERY_ENGINE_SERVING_CONFIG", "default_search");
     const url = `https://discoveryengine.googleapis.com/v1/projects/${project}/locations/${location}/collections/${collection}/engines/${engineId}/servingConfigs/${engineServingConfig}:search`;
     return { url, useDataStoreSpecs: true };
   }
@@ -335,7 +353,7 @@ function normalizeResult(result: unknown, sourceName: string): NormalizedResult 
   };
 }
 
-function formatResults(results: NormalizedResult[], source: DataStoreSource): string {
+function formatRawResults(results: NormalizedResult[], source: DataStoreSource): string {
   if (results.length === 0) {
     return `No Google Data Store search results found in source: ${source.name}.`;
   }
@@ -350,14 +368,12 @@ function formatResults(results: NormalizedResult[], source: DataStoreSource): st
       }
 
       if (result.segments.length > 0) {
-        // Full content segments: join them so the model sees the complete context
         lines.push("Content:");
         for (const seg of result.segments) {
           lines.push(seg.content);
           lines.push("---");
         }
       } else if (result.snippet) {
-        // Fallback: only snippet available (standard edition)
         lines.push(`Snippet: ${result.snippet}`);
       }
 
@@ -368,6 +384,203 @@ function formatResults(results: NormalizedResult[], source: DataStoreSource): st
       return lines.join("\n");
     })
     .join("\n\n");
+}
+
+function formatSynthesizedResult(result: SynthesizedSearchResult): string {
+  const lines = ["Answer:", result.answer.trim(), "", "Documents searched:"];
+  for (const [index, doc] of result.documents.entries()) {
+    lines.push(`${index + 1}. ${doc.title || "Untitled document"}`);
+    if (doc.source) lines.push(`Source: ${doc.source}`);
+    if (doc.url) lines.push(`URL: ${doc.url}`);
+    lines.push(`Summary: ${doc.summary}`);
+  }
+  if (result.limitations?.length) {
+    lines.push("", "Limitations:");
+    for (const limitation of result.limitations) lines.push(`- ${limitation}`);
+  }
+  return lines.join("\n");
+}
+
+function extractJson(text: string): string {
+  const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(text);
+  if (fenced) return fenced[1].trim();
+  const startObj = text.indexOf("{");
+  const startArr = text.indexOf("[");
+  const start = startObj < 0 ? startArr : startArr < 0 ? startObj : Math.min(startObj, startArr);
+  if (start < 0) throw new Error(`Subagent response did not contain JSON: ${text.slice(0, 300)}`);
+  const trimmed = text.trim();
+  const end = trimmed.endsWith("]") ? text.lastIndexOf("]") : text.lastIndexOf("}");
+  if (end < start) throw new Error(`Subagent response JSON range was invalid: ${text.slice(0, 300)}`);
+  return text.slice(start, end + 1).trim();
+}
+
+function parsePiJson(stdout: string): string {
+  let text = "";
+  for (const line of stdout.split("\n").filter(Boolean)) {
+    let ev: any;
+    try { ev = JSON.parse(line); } catch { continue; }
+    if (ev.type === "message_update" && ev.assistantMessageEvent?.type === "text_delta") text += ev.assistantMessageEvent.delta;
+    if (ev.type === "message_end" && ev.message?.role === "assistant") {
+      for (const p of ev.message.content ?? []) {
+        if (p.type === "text" && !text.includes(p.text)) text += p.text;
+      }
+    }
+  }
+  return text.trim();
+}
+
+async function runPiSubagent(opts: {
+  cwd: string;
+  provider: string;
+  model: string;
+  prompt: string;
+  signal?: AbortSignal;
+  timeoutMs?: number;
+}): Promise<string> {
+  const tmpDir = await mkdtemp(join(tmpdir(), "pi-gds-subagent-"));
+  const promptPath = join(tmpDir, "prompt.md");
+  await writeFile(promptPath, opts.prompt, { encoding: "utf-8", mode: 0o600 });
+  try {
+    return await new Promise<string>((resolve, reject) => {
+      const args = [
+        "--mode", "json",
+        "--print",
+        "--no-session",
+        "--no-context-files",
+        "--no-tools",
+        "--provider", opts.provider,
+        "--model", opts.model,
+        `@${promptPath}`,
+      ];
+      const proc = spawn("pi", args, {
+        cwd: opts.cwd,
+        stdio: ["ignore", "pipe", "pipe"],
+        env: { ...process.env, PI_SKIP_VERSION_CHECK: "1" },
+      });
+      let stdout = "";
+      let stderr = "";
+      const timer = setTimeout(() => {
+        proc.kill("SIGTERM");
+        reject(new Error(`Google Data Store subagent timed out after ${opts.timeoutMs ?? 180000}ms`));
+      }, opts.timeoutMs ?? 180000);
+      const abort = () => {
+        proc.kill("SIGTERM");
+        reject(new Error("Google Data Store subagent was aborted."));
+      };
+      opts.signal?.addEventListener("abort", abort, { once: true });
+      proc.stdout.on("data", (chunk) => { stdout += chunk.toString(); });
+      proc.stderr.on("data", (chunk) => { stderr += chunk.toString(); });
+      proc.on("error", (err) => {
+        clearTimeout(timer);
+        opts.signal?.removeEventListener("abort", abort);
+        reject(err);
+      });
+      proc.on("close", (code) => {
+        clearTimeout(timer);
+        opts.signal?.removeEventListener("abort", abort);
+        if (code !== 0) reject(new Error(`Google Data Store subagent failed with status ${code}: ${stderr}\n${stdout}`));
+        else resolve(parsePiJson(stdout));
+      });
+    });
+  } finally {
+    await rm(tmpDir, { recursive: true, force: true }).catch(() => undefined);
+  }
+}
+
+function buildSynthesisPrompt(query: string, source: DataStoreSource, rawResults: string): string {
+  return `당신은 기업 문서 검색 결과를 정제하는 전문 subagent입니다.
+
+목표:
+- 사용자의 질문에 대해 검색 결과에 근거한 정제된 답변을 작성합니다.
+- 검색 결과에 없는 내용은 추측하지 않습니다.
+- 같은 질문으로 호출자가 반복 검색하지 않도록, 찾아본 문서별 요약도 함께 제공합니다.
+- 문서 제목과 URL을 반드시 보존합니다.
+- 출력은 JSON 객체 하나만 반환합니다.
+
+출력 JSON schema:
+{
+  "answer": "질문에 대한 정제된 한국어 답변. 근거가 있는 사항만 포함.",
+  "documents": [
+    { "title": "문서 제목", "url": "문서 URL", "source": "검색 source", "summary": "이 문서에서 확인한 핵심 내용 요약" }
+  ],
+  "limitations": ["확인하지 못한 점이나 주의사항"]
+}
+
+사용자 질문:
+${query}
+
+검색 source:
+${source.name}
+
+검색 원자료:
+${rawResults}`;
+}
+
+function extractLikelyKoreanPersonName(query: string): string | undefined {
+  const match = /([가-힣]{2,4})\s*(?:사원|님의|의|님|씨)/.exec(query) || /([가-힣]{2,4})/.exec(query);
+  return match?.[1];
+}
+
+function buildQueryVariants(query: string): string[] {
+  const variants = [query];
+  const personName = extractLikelyKoreanPersonName(query);
+  const looksLikeRoleQuery = /RnR|R&R|역할|업무|담당|책임|분장/i.test(query);
+  if (personName && looksLikeRoleQuery) {
+    variants.push(`${personName} 구성원 역할 개인별 업무분장 담당자 역할 책임`);
+    variants.push(`${personName} 구성원 역할 개인별 업무분장 RnR 보안 V2X 담당자`);
+  }
+  return [...new Set(variants)];
+}
+
+function mergeNormalizedResults(results: NormalizedResult[]): NormalizedResult[] {
+  const byKey = new Map<string, NormalizedResult>();
+  for (const result of results) {
+    const key = result.uri || result.documentName || result.id || `${result.title}:${result.source}`;
+    const existing = byKey.get(key);
+    if (!existing) {
+      byKey.set(key, { ...result, segments: [...result.segments] });
+      continue;
+    }
+    for (const segment of result.segments) {
+      if (!existing.segments.some((s) => s.content === segment.content)) existing.segments.push(segment);
+    }
+    if (!existing.snippet && result.snippet) existing.snippet = result.snippet;
+  }
+  return [...byKey.values()];
+}
+
+async function synthesizeResults(opts: {
+  query: string;
+  source: DataStoreSource;
+  rawResults: string;
+  cwd: string;
+  model?: { provider: string; id: string };
+  signal?: AbortSignal;
+}): Promise<SynthesizedSearchResult | undefined> {
+  if (process.env.GOOGLE_DATA_STORE_SUBAGENT === "0" || process.env.GOOGLE_DATA_STORE_SUBAGENT === "false") {
+    return undefined;
+  }
+
+  const provider = process.env.GOOGLE_DATA_STORE_SUBAGENT_PROVIDER || opts.model?.provider;
+  const model = process.env.GOOGLE_DATA_STORE_SUBAGENT_MODEL || opts.model?.id;
+  if (!provider || !model) return undefined;
+
+  const prompt = buildSynthesisPrompt(opts.query, opts.source, opts.rawResults);
+  const text = await runPiSubagent({ cwd: opts.cwd, provider, model, prompt, signal: opts.signal });
+  const parsed = JSON.parse(extractJson(text)) as Partial<SynthesizedSearchResult>;
+  if (!parsed.answer || !Array.isArray(parsed.documents)) {
+    throw new Error(`Google Data Store subagent returned invalid JSON: ${text.slice(0, 500)}`);
+  }
+  return {
+    answer: parsed.answer,
+    documents: parsed.documents.map((doc) => ({
+      title: doc.title,
+      url: doc.url,
+      source: doc.source,
+      summary: doc.summary || "요약 없음",
+    })),
+    limitations: Array.isArray(parsed.limitations) ? parsed.limitations : undefined,
+  };
 }
 
 export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
@@ -406,7 +619,7 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
       ),
     }),
 
-    async execute(_toolCallId, params: SearchParams, signal): Promise<{
+    async execute(_toolCallId, params: SearchParams, signal, _onUpdate, ctx): Promise<{
       content: Array<{ type: "text"; text: string }>;
       details: SearchResultDetails;
     }> {
@@ -438,50 +651,83 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
         "x-goog-user-project": project,
       };
 
-      const body: Record<string, unknown> = {
-        query: params.query,
-        pageSize,
-        queryExpansionSpec: { condition: "AUTO" },
-        spellCorrectionSpec: { mode: "AUTO" },
-        contentSearchSpec: {
-          snippetSpec: { returnSnippet: true },
-          extractiveContentSpec: {
-            maxExtractiveSegmentCount: 3,
-            maxExtractiveAnswerCount: 3,
-            returnExtractiveSegmentScore: true,
-          },
-        },
-      };
-
-      // When using engine endpoint, narrow to specific dataStore via dataStoreSpecs
-      if (useDataStoreSpecs) {
-        body.dataStoreSpecs = [
-          { dataStore: buildDataStoreResourceName(selectedSource) },
-        ];
-      }
-
       const filter = params.filter || buildSourceFilter(selectedSource) || process.env.GOOGLE_DATA_STORE_FILTER;
-      if (filter) {
-        body.filter = filter;
+      const queryVariants = buildQueryVariants(params.query);
+      const allResults: NormalizedResult[] = [];
+
+      for (const query of queryVariants) {
+        const body: Record<string, unknown> = {
+          query,
+          pageSize,
+          queryExpansionSpec: { condition: "AUTO" },
+          spellCorrectionSpec: { mode: "AUTO" },
+          contentSearchSpec: {
+            snippetSpec: { returnSnippet: true },
+            extractiveContentSpec: {
+              maxExtractiveSegmentCount: 3,
+              maxExtractiveAnswerCount: 3,
+              returnExtractiveSegmentScore: true,
+            },
+          },
+        };
+
+        // When using engine endpoint, narrow to specific dataStore via dataStoreSpecs
+        if (useDataStoreSpecs) {
+          body.dataStoreSpecs = [
+            { dataStore: buildDataStoreResourceName(selectedSource) },
+          ];
+        }
+
+        if (filter) {
+          body.filter = filter;
+        }
+
+        const response = await fetch(url, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(body),
+          signal,
+        });
+
+        if (!response.ok) {
+          const text = await response.text();
+          throw new Error(
+            `Google Data Store search failed for source '${selectedSource.name}': HTTP ${response.status} ${text}`,
+          );
+        }
+
+        const payload = (await response.json()) as { results?: unknown[] };
+        allResults.push(...(payload.results || []).map((result) => normalizeResult(result, selectedSource.name)));
       }
 
-      const response = await fetch(url, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-        signal,
-      });
+      const results = mergeNormalizedResults(allResults);
+      const rawText = formatRawResults(results, selectedSource);
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(
-          `Google Data Store search failed for source '${selectedSource.name}': HTTP ${response.status} ${text}`,
-        );
+      let synthesized: SynthesizedSearchResult | undefined;
+      try {
+        synthesized = await synthesizeResults({
+          query: params.query,
+          source: selectedSource,
+          rawResults: rawText,
+          cwd: ctx?.cwd || process.cwd(),
+          model: ctx?.model ? { provider: ctx.model.provider, id: ctx.model.id } : undefined,
+          signal,
+        });
+      } catch (error) {
+        // Do not fail search if the optional subagent fails. Return raw evidence instead.
+        synthesized = {
+          answer: `Subagent synthesis failed, so raw search evidence is returned. Error: ${error instanceof Error ? error.message : String(error)}`,
+          documents: results.map((result) => ({
+            title: result.title,
+            url: result.uri,
+            source: result.source,
+            summary: result.segments[0]?.content || result.snippet || "No summary available.",
+          })),
+          limitations: ["Subagent synthesis failed; the caller should inspect the returned document summaries carefully."],
+        };
       }
 
-      const payload = (await response.json()) as { results?: unknown[] };
-      const results = (payload.results || []).map((result) => normalizeResult(result, selectedSource.name));
-      const text = formatResults(results, selectedSource);
+      const text = synthesized ? formatSynthesizedResult(synthesized) : rawText;
 
       return {
         content: [{ type: "text", text }],
@@ -490,6 +736,7 @@ export default function googleDataStoreSearchExtension(pi: ExtensionAPI) {
           source: selectedSource,
           searchEndpoint: url,
           results,
+          synthesized,
         },
       };
     },
