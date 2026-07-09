@@ -139,7 +139,8 @@
           "input": [
             "text",
             "image"
-          ]
+          ],
+          "reasoning": true
         },
         {
           "id": "qwen3-80b-thinking",
