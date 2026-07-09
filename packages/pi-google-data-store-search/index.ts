@@ -452,8 +452,14 @@ async function runPiSubagent(opts: {
         "--model", opts.model,
         `@${promptPath}`,
       ];
-      const proc = spawn("pi", args, {
+      // On Windows, npm installs `pi` as `pi.cmd`/`pi.ps1`. `spawn("pi", ...,
+      // { shell: false })` can fail with ENOENT even when `pi --version` works
+      // in PowerShell, because CreateProcess does not run npm command shims the
+      // same way an interactive shell does. Use the cmd shim through a shell.
+      const piCommand = process.platform === "win32" ? "pi.cmd" : "pi";
+      const proc = spawn(piCommand, args, {
         cwd: opts.cwd,
+        shell: process.platform === "win32",
         stdio: ["ignore", "pipe", "pipe"],
         env: { ...process.env, PI_SKIP_VERSION_CHECK: "1" },
       });
