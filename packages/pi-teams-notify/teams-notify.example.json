@@ -1,4 +1,11 @@
 {
-  "enabled": false,
-  "webhookUrl": "https://example.webhook.office.com/webhookb2/..."
+  "mode": "smart",
+  "webhookUrl": "https://example.webhook.office.com/webhookb2/...",
+  "notifyNext": false,
+  "smart": {
+    "minimumDurationSeconds": 60,
+    "minimumTurns": 10,
+    "minimumToolCalls": 10,
+    "alwaysNotifyGoalCompletion": true
+  }
 }
