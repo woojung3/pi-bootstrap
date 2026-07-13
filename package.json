@@ -1,6 +1,6 @@
 {
   "name": "pi-bootstrap",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Personal Pi configuration, bootstrap scripts, and bundled Pi extensions.",
   "keywords": [
@@ -15,7 +15,8 @@
     "extensions": [
       "./packages/pi-yolo/index.ts",
       "./packages/pi-academy/index.ts",
-      "./packages/pi-google-data-store-search/index.ts"
+      "./packages/pi-google-data-store-search/index.ts",
+      "./packages/pi-teams-notify/index.ts"
     ]
   },
   "dependencies": {

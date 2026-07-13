@@ -24,6 +24,7 @@ pi install npm:@narumitw/pi-goal
 pi install "$ROOT/packages/pi-yolo"
 pi install "$ROOT/packages/pi-academy"
 pi install "$ROOT/packages/pi-google-data-store-search"
+pi install "$ROOT/packages/pi-teams-notify"
 
 echo
 echo "Bootstrap complete."

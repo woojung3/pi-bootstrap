@@ -13,16 +13,17 @@ pi-bootstrap/
     pi-yolo/
     pi-academy/
     pi-google-data-store-search/
+    pi-teams-notify/
 ```
 
 submodule 없이 하나의 GitHub repo에 설정과 개인 패키지를 같이 둡니다.
 
 ## 전체 설치
 
-루트 `package.json`이 세 extension을 함께 선언하므로 repo 전체를 하나의 Pi package로 설치할 수 있습니다.
+루트 `package.json`이 네 extension을 함께 선언하므로 repo 전체를 하나의 Pi package로 설치할 수 있습니다.
 
 ```bash
-pi install git:github.com/woojung3/pi-bootstrap@v0.3.0
+pi install git:github.com/woojung3/pi-bootstrap@v0.4.0
 ```
 
 또는 로컬 clone에서:
@@ -37,6 +38,7 @@ pi install .
 pi install ./packages/pi-yolo
 pi install ./packages/pi-academy
 pi install ./packages/pi-google-data-store-search
+pi install ./packages/pi-teams-notify
 ```
 
 ## 현재 개인 패키지
@@ -67,6 +69,16 @@ pi install ./packages/pi-google-data-store-search
 
 자세한 설정은 [`../packages/pi-google-data-store-search/README.md`](../packages/pi-google-data-store-search/README.md)를 참고하세요.
 
+### pi-teams-notify
+
+Pi 작업이 재시도와 follow-up까지 완전히 끝나면 Teams webhook으로 알려줍니다. `/teams-notify on|off|status|test`로 제어하며, webhook은 권한 `0600`의 개인 설정 파일에 보관하는 방식을 권장합니다.
+
+```bash
+pi install ./packages/pi-teams-notify
+```
+
+자세한 설정은 [`../packages/pi-teams-notify/README.md`](../packages/pi-teams-notify/README.md)를 참고하세요.
+
 ## GitHub 업로드 절차
 
 루트에서:
@@ -78,14 +90,14 @@ git commit -m "Initial pi bootstrap"
 git branch -M main
 git remote add origin https://github.com/woojung3/pi-bootstrap
 git push -u origin main
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.4.0
+git push origin v0.4.0
 ```
 
 그 후:
 
 ```bash
-pi install git:github.com/woojung3/pi-bootstrap@v0.3.0
+pi install git:github.com/woojung3/pi-bootstrap@v0.4.0
 ```
 
 ## npm 배포 선택사항
