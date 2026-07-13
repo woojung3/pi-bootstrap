@@ -226,6 +226,54 @@
           }
         },
         {
+          "id": "grok-4.1-fast-reasoning",
+          "name": "Grok 4.1 Fast Reasoning",
+          "contextWindow": 2000000,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ],
+          "reasoning": true
+        },
+        {
+          "id": "grok-4.1-fast-non-reasoning",
+          "name": "Grok 4.1 Fast Non-Reasoning",
+          "contextWindow": 2000000,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "grok-4.20-reasoning",
+          "name": "Grok 4.20 Reasoning",
+          "contextWindow": 2000000,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ],
+          "reasoning": true
+        },
+        {
+          "id": "grok-4.20-non-reasoning",
+          "name": "Grok 4.20 Non-Reasoning",
+          "contextWindow": 2000000,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ]
+        },
+        {
+          "id": "grok-4.3",
+          "name": "Grok 4.3",
+          "contextWindow": 2000000,
+          "maxTokens": 32768,
+          "input": [
+            "text"
+          ],
+          "reasoning": true
+        },
+        {
           "id": "embedding",
           "name": "Embedding Model",
           "contextWindow": 2048,
