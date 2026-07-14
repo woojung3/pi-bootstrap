@@ -38,4 +38,7 @@ pi update --extensions   # 패키지만 갱신
 ```bash
 pi list
 pi remove npm:<package-name>
+
+# Codex 사용량 extension 설치
+pi install npm:@narumitw/pi-codex-usage
 ```

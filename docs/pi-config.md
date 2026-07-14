@@ -44,14 +44,17 @@ direnv allow
 
 `.envrc`에는 실제 secret을 직접 쓰지 않는 것을 권장합니다. secret은 shell profile, password manager, 별도 private 파일에서 주입하세요.
 
-## 3. Statusline / Goal 설치
+## 3. Statusline / Goal / Codex Usage 설치
 
 ```bash
 pi install npm:@narumitw/pi-statusline
 pi install npm:@narumitw/pi-goal
+pi install npm:@narumitw/pi-codex-usage
 ```
 
 설치 결과는 `~/.pi/agent/settings.json`의 `packages` 배열과 `~/.pi/agent/npm/` 아래에 반영됩니다.
+
+`pi-codex-usage`는 선택한 provider가 `openai-codex`일 때 5시간/주간 사용량을 statusline에 자동 표시하고 5분마다 갱신합니다. Pi 안에서 `/codex-status`로 즉시 조회하거나 `/codex-status --refresh`로 캐시를 무시하고 새로 조회할 수 있습니다. Pi의 `/login`에서 ChatGPT Plus/Pro 구독 인증을 사용해야 하며, 일반 OpenAI API key로는 구독 사용량을 조회할 수 없습니다.
 
 ## 4. OpenAI 모델 로그인
 
