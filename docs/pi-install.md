@@ -2,7 +2,8 @@
 
 ## 전제
 
-- Node/npm 또는 pi 배포판에서 요구하는 런타임이 설치되어 있어야 합니다.
+- 이 저장소의 `bootstrap.sh`는 runtime dependency 설치에 Node.js와 **npm**을 사용합니다.
+- `package-lock.json`을 기준으로 `npm ci --omit=dev`를 실행하므로 pnpm이나 Yarn은 필요하지 않습니다.
 - `direnv` 사용을 권장합니다.
 
 ## 설치

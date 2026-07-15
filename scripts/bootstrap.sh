@@ -9,6 +9,14 @@ if ! command -v pi >/dev/null 2>&1; then
   exit 1
 fi
 
+if ! command -v npm >/dev/null 2>&1; then
+  echo "error: npm command not found. Install Node.js/npm, then rerun this script." >&2
+  exit 1
+fi
+
+echo "Installing runtime dependencies with npm ci..."
+npm ci --omit=dev --prefix "$ROOT"
+
 mkdir -p "$PI_AGENT_DIR"
 install -m 0600 "$ROOT/config/models.json" "$PI_AGENT_DIR/models.json"
 

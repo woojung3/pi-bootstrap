@@ -41,14 +41,15 @@ cd pi-bootstrap
 
 `bootstrap.sh`가 수행하는 일:
 
-1. `config/models.json` → `~/.pi/agent/models.json` 복사
-2. `npm:@narumitw/pi-statusline` 설치
-3. `npm:@narumitw/pi-goal` 설치
-4. `npm:@narumitw/pi-codex-usage` 설치
-5. `packages/pi-yolo` 로컬 설치
-6. `packages/pi-academy` 로컬 설치
-7. `packages/pi-google-data-store-search` 로컬 설치
-8. `packages/pi-teams-notify` 로컬 설치
+1. `npm ci --omit=dev`로 extension 런타임 dependency 설치
+2. `config/models.json` → `~/.pi/agent/models.json` 복사
+3. `npm:@narumitw/pi-statusline` 설치
+4. `npm:@narumitw/pi-goal` 설치
+5. `npm:@narumitw/pi-codex-usage` 설치
+6. `packages/pi-yolo` 로컬 설치
+7. `packages/pi-academy` 로컬 설치
+8. `packages/pi-google-data-store-search` 로컬 설치
+9. `packages/pi-teams-notify` 로컬 설치
 
 그 다음 수동 단계:
 
@@ -67,7 +68,13 @@ Pi 안에서:
 
 ## 패키지 설치 방식
 
-개별 로컬 설치:
+개별 로컬 설치 전에는 루트 runtime dependency를 먼저 설치합니다. `bootstrap.sh`를 사용하면 이 단계가 자동으로 실행됩니다.
+
+```bash
+npm ci --omit=dev
+```
+
+그다음 개별 로컬 설치:
 
 ```bash
 pi install ./packages/pi-yolo
