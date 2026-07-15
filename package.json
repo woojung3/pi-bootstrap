@@ -1,6 +1,6 @@
 {
   "name": "pi-bootstrap",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
   "description": "Personal Pi configuration, bootstrap scripts, and bundled Pi extensions.",
   "keywords": [

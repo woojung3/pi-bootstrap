@@ -7,5 +7,12 @@
     "minimumTurns": 10,
     "minimumToolCalls": 10,
     "alwaysNotifyGoalCompletion": true
+  },
+  "summary": {
+    "mode": "auto",
+    "provider": "litellm",
+    "model": "gemini-3.1-flash-lite",
+    "maximumLength": 140,
+    "timeoutSeconds": 5
   }
 }

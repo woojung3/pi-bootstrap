@@ -79,7 +79,7 @@ pi install ./packages/pi-teams-notify
 GitHub repo 전체를 하나의 Pi package로 설치:
 
 ```bash
-pi install git:github.com/woojung3/pi-bootstrap@v0.4.1
+pi install git:github.com/woojung3/pi-bootstrap@v0.4.2
 ```
 
 루트 `package.json`이 네 extension을 함께 선언합니다.
@@ -94,7 +94,7 @@ Pi의 `pi install` 명령은 git repo 전체를 패키지로 설치합니다. �
 {
   "packages": [
     {
-      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.1",
+      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.2",
       "extensions": ["packages/pi-yolo/index.ts"]
     }
   ]
@@ -107,7 +107,7 @@ Pi의 `pi install` 명령은 git repo 전체를 패키지로 설치합니다. �
 {
   "packages": [
     {
-      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.1",
+      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.2",
       "extensions": ["packages/pi-academy/index.ts"]
     }
   ]
@@ -120,7 +120,7 @@ Pi의 `pi install` 명령은 git repo 전체를 패키지로 설치합니다. �
 {
   "packages": [
     {
-      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.1",
+      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.2",
       "extensions": ["packages/pi-google-data-store-search/index.ts"]
     }
   ]
@@ -133,7 +133,7 @@ Pi의 `pi install` 명령은 git repo 전체를 패키지로 설치합니다. �
 {
   "packages": [
     {
-      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.1",
+      "source": "git:github.com/woojung3/pi-bootstrap@v0.4.2",
       "extensions": ["packages/pi-teams-notify/index.ts"]
     }
   ]
