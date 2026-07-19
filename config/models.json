@@ -199,6 +199,16 @@
           "reasoning": true
         },
         {
+          "id": "kimi-k2-thinking",
+          "name": "Kimi K2 Thinking",
+          "contextWindow": 256000,
+          "maxTokens": 256000,
+          "input": [
+            "text"
+          ],
+          "reasoning": true
+        },
+        {
           "id": "claude-opus-4-8",
           "name": "Claude Opus 4.8",
           "contextWindow": 1000000,
