@@ -202,7 +202,7 @@
           "id": "kimi-k2-thinking",
           "name": "Kimi K2 Thinking",
           "contextWindow": 256000,
-          "maxTokens": 256000,
+          "maxTokens": 65536,
           "input": [
             "text"
           ],
