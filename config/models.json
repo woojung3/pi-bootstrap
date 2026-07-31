@@ -236,6 +236,24 @@
           }
         },
         {
+          "id": "chatgpt-5.4",
+          "name": "ChatGPT GPT-5.4",
+          "contextWindow": 1050000,
+          "maxTokens": 128000,
+          "input": [
+            "text",
+            "image"
+          ],
+          "reasoning": true,
+          "thinkingLevelMap": {
+            "minimal": "low",
+            "xhigh": "xhigh"
+          },
+          "compat": {
+            "supportsReasoningEffort": true
+          }
+        },
+        {
           "id": "grok-4.1-fast-reasoning",
           "name": "Grok 4.1 Fast Reasoning",
           "contextWindow": 2000000,
