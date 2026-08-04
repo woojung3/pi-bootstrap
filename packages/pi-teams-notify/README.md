@@ -19,7 +19,7 @@ chmod 600 ~/.pi/agent/teams-notify.json
 $EDITOR ~/.pi/agent/teams-notify.json
 ```
 
-기존 `TEAMS_WEBHOOK_URL`도 계속 지원하며 설정 파일보다 우선합니다.
+`TEAMS_WEBHOOK_URL`이 설정되어 있으면 설정 파일의 `webhookUrl`보다 우선합니다.
 
 ## 모드와 명령
 
@@ -29,7 +29,7 @@ $EDITOR ~/.pi/agent/teams-notify.json
 /teams-notify off      # 알림 끄기
 /teams-notify next     # 다음 작업만 반드시 알린 뒤 이전 모드로 복귀
 /teams-notify status   # 상태 및 webhook 출처 확인(URL은 표시하지 않음)
-/teams-notify summary auto        # Gemini 우선, 실패 시 기계식 한 줄 요약(권장)
+/teams-notify summary auto        # AI 우선, 실패 시 기계식 한 줄 요약(권장)
 /teams-notify summary ai          # AI 한 줄 요약 사용(실패 시 기계식 fallback)
 /teams-notify summary mechanical  # 외부 모델 호출 없이 한 줄 요약
 /teams-notify summary off         # 요약문 없이 메트릭만 표시
@@ -44,7 +44,7 @@ Smart 모드는 다음 조건을 **OR**로 평가합니다.
 - 10회 이상 도구 호출
 - `goal_complete` 또는 `goal_blocked` 호출
 
-기준은 `smart` 설정에서 변경할 수 있습니다. 기존 `{ "enabled": true }` 설정은 자동으로 Smart 모드로 읽습니다.
+기준은 `smart` 설정에서 변경할 수 있습니다.
 
 ```json
 {
@@ -59,8 +59,6 @@ Smart 모드는 다음 조건을 **OR**로 평가합니다.
   },
   "summary": {
     "mode": "auto",
-    "provider": "litellm",
-    "model": "gemini-3.1-flash-lite",
     "maximumLength": 140,
     "timeoutSeconds": 5
   }
@@ -79,7 +77,7 @@ Teams 카드가 채팅을 잠식하지 않도록 기본 알림은 아래 세 요
 - 요청과 최종 결과를 합친 최대 140자의 한 줄 요약
 - 소요 시간과 turn/tool 수
 
-기본 `auto` 모드는 설정된 `litellm/gemini-3.1-flash-lite` 모델과 인증을 사용할 수 있을 때 AI로 한 문장을 생성합니다. 모델 미등록, 인증 실패, 5초 timeout, 빈 응답 등 어떤 실패가 발생해도 요청 및 결과의 첫 문장을 조합한 로컬 요약으로 조용히 fallback하며 Teams 알림 자체는 계속 전송합니다. AI에 전달하는 요청과 결과는 각각 최대 4,000자로 제한됩니다.
+기본 `auto` 모드는 설정된 요약 모델과 인증을 사용할 수 있을 때 AI로 한 문장을 생성합니다. `summary.provider`와 `summary.model`을 지정하면 사용할 모델을 재정의할 수 있습니다. 모델 미등록, 인증 실패, 5초 timeout, 빈 응답 등 어떤 실패가 발생해도 요청 및 결과의 첫 문장을 조합한 로컬 요약으로 조용히 fallback하며 Teams 알림 자체는 계속 전송합니다. AI에 전달하는 요청과 결과는 각각 최대 4,000자로 제한됩니다.
 
 `goal_blocked`가 호출된 작업은 `⛔ Pi 확인 필요`로 구분합니다. Webhook URL 자체는 UI나 알림에 노출하지 않습니다.
 

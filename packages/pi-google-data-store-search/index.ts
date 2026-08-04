@@ -151,14 +151,14 @@ async function loadConfiguredSources(): Promise<DataStoreSource[]> {
     return parsed.map(normalizeSource);
   }
 
-  const legacyDataStoreId = process.env.GOOGLE_DATA_STORE_ID;
-  if (legacyDataStoreId) {
+  const environmentDataStoreId = process.env.GOOGLE_DATA_STORE_ID;
+  if (environmentDataStoreId) {
     return [
       {
         name: envOrDefault("GOOGLE_DATA_STORE_SOURCE", "default"),
         aliases: ["default"],
-        dataStoreId: legacyDataStoreId,
-        description: "Legacy single data store configured by GOOGLE_DATA_STORE_ID.",
+        dataStoreId: environmentDataStoreId,
+        description: "Single data store configured by GOOGLE_DATA_STORE_ID.",
       },
     ];
   }

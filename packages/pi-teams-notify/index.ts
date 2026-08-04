@@ -16,7 +16,7 @@ const DEFAULT_SMART = {
 const DEFAULT_SUMMARY = {
 	mode: "auto" as SummaryMode,
 	provider: "litellm",
-	model: "gemini-3.1-flash-lite",
+	model: "gemini-3.5-flash-lite",
 	maximumLength: 140,
 	timeoutSeconds: 5,
 };
@@ -213,9 +213,9 @@ function modeDescription(config: Config): string {
 async function loadConfig(): Promise<Config> {
 	try {
 		const parsed = JSON.parse(await fs.readFile(CONFIG_PATH, "utf8")) as Record<string, unknown>;
-		const legacyEnabled = parsed.enabled === true;
+		const smartEnabled = parsed.enabled === true;
 		return {
-			mode: isMode(parsed.mode) ? parsed.mode : legacyEnabled ? "smart" : "off",
+			mode: isMode(parsed.mode) ? parsed.mode : smartEnabled ? "smart" : "off",
 			webhookUrl: cleanUrl(parsed.webhookUrl),
 			notifyNext: parsed.notifyNext === true,
 			smart: normalizeSmart(parsed.smart),

@@ -113,11 +113,11 @@ By default, the tool runs a pi subagent after search. The subagent receives the 
 
 This keeps the main conversation context small even when Discovery Engine returns large table/paragraph chunks.
 
-The subagent uses the current pi model when available. You can override it:
+The subagent uses the current pi model when available. You can override it with any provider and model registered in pi:
 
 ```bash
-export GOOGLE_DATA_STORE_SUBAGENT_PROVIDER="litellm"
-export GOOGLE_DATA_STORE_SUBAGENT_MODEL="gemini-3.5-flash"
+export GOOGLE_DATA_STORE_SUBAGENT_PROVIDER="your-provider-id"
+export GOOGLE_DATA_STORE_SUBAGENT_MODEL="your-model-id"
 ```
 
 To disable subagent synthesis and return raw excerpts directly:
@@ -317,9 +317,9 @@ The model should call the tool with one selected source:
 
 If `source` is omitted and multiple sources are configured, the tool only guesses from exact aliases in the query. If the source is still ambiguous, it fails and prints the available sources instead of silently searching the wrong Data Store.
 
-## Legacy single-source mode
+## Single-source environment configuration
 
-For a quick single Data Store setup, you may use the old single-source variable:
+For a quick single Data Store setup, use these environment variables:
 
 ```bash
 export GOOGLE_CLOUD_PROJECT="acme-gemini-enterprise-123456"
