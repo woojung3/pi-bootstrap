@@ -1,5 +1,12 @@
 {
   "providers": {
+    "openai-codex": {
+      "modelOverrides": {
+        "gpt-5.6-sol": {
+          "contextWindow": 372000
+        }
+      }
+    },
     "litellm": {
       "baseUrl": "https://aigw.autocrypt.co.kr/v1",
       "api": "openai-completions",
