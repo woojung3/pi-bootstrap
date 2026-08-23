@@ -215,6 +215,20 @@
           }
         },
         {
+          "id": "gemini-3.7-flash",
+          "name": "Gemini 3.7 Flash",
+          "contextWindow": 1048576,
+          "maxTokens": 65536,
+          "input": [
+            "text",
+            "image"
+          ],
+          "reasoning": true,
+          "compat": {
+            "supportsReasoningEffort": true
+          }
+        },
+        {
           "id": "qwen3-80b-thinking",
           "name": "Qwen3 80B Thinking",
           "contextWindow": 262144,
