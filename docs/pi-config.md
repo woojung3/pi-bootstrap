@@ -2,11 +2,10 @@
 
 ## 1. 모델 설정
 
-이 저장소의 `config/models.json`을 `~/.pi/agent/models.json`로 복사합니다.
+모델 설정의 원천은 `config/models.json`입니다. installer가 catalog를 검증한 뒤 `~/.pi/agent/models.json`을 mode `0600`으로 원자적으로 교체합니다. 설치 결과는 직접 편집하지 않습니다.
 
 ```bash
-mkdir -p ~/.pi/agent
-cp config/models.json ~/.pi/agent/models.json
+./scripts/install-pi-config.sh
 ```
 
 현재 모델 설정은 `litellm` provider를 OpenAI Chat Completions 호환 API로 등록합니다.
@@ -23,7 +22,7 @@ cp config/models.json ~/.pi/agent/models.json
 }
 ```
 
-주의: Pi의 공식 파일명은 `models.json`입니다. 예전에 `models.yml`이라고 부르더라도 실제 적용 파일은 `~/.pi/agent/models.json`입니다.
+설치 전 catalog만 검증하려면 `python3 scripts/verify-models.py`를 실행합니다.
 
 ## 2. 환경변수 / direnv
 
