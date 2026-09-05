@@ -17,10 +17,7 @@ fi
 echo "Installing runtime dependencies with npm ci..."
 npm ci --omit=dev --prefix "$ROOT"
 
-mkdir -p "$PI_AGENT_DIR"
-install -m 0600 "$ROOT/config/models.json" "$PI_AGENT_DIR/models.json"
-
-echo "Installed models.json -> $PI_AGENT_DIR/models.json"
+PI_AGENT_DIR="$PI_AGENT_DIR" "$ROOT/scripts/install-pi-config.sh"
 
 if command -v direnv >/dev/null 2>&1 && [ ! -f "$ROOT/.envrc" ]; then
   cp "$ROOT/envrc.example" "$ROOT/.envrc"
