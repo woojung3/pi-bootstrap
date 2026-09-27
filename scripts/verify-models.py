@@ -13,6 +13,9 @@ REQUIRED_MODELS = {
     "glm-5.2": (1_000_000, 64_000, {"text"}, True),
     "grok-4.6": (524_288, 32_768, {"text", "image"}, True),
     "chatgpt-6-astra": (372_000, 128_000, {"text", "image"}, True),
+    "claude-opus-5-5": (1_000_000, 128_000, {"text", "image"}, True),
+    "chatgpt-6-sol": (1_050_000, 128_000, {"text", "image"}, True),
+    "chatgpt-6-luna": (1_050_000, 128_000, {"text", "image"}, True),
 }
 
 
