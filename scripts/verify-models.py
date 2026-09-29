@@ -15,6 +15,7 @@ REQUIRED_MODELS = {
     "chatgpt-6-astra": (372_000, 128_000, {"text", "image"}, True),
     "claude-opus-5-5": (1_000_000, 128_000, {"text", "image"}, True),
     "chatgpt-6-sol": (1_050_000, 128_000, {"text", "image"}, True),
+    "chatgpt-6.1-sol": (1_050_000, 128_000, {"text", "image"}, True),
     "chatgpt-6-luna": (1_050_000, 128_000, {"text", "image"}, True),
 }
 
