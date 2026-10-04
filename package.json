@@ -14,7 +14,8 @@
   "pi": {
     "extensions": [
       "./extensions/google-data-store-search/index.ts"
-    ]
+    ],
+    "skills": ["./skills"]
   },
   "scripts": {
     "test": "python3 -m unittest discover -s tests -v && node --experimental-strip-types --test tests/*/*.test.ts && python3 scripts/verify-models.py",

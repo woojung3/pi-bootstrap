@@ -18,6 +18,7 @@ pi-bootstrap/
 │       ├── results.ts       # 결과 정규화·출력·fallback
 │       ├── synthesis.ts     # 격리된 Pi 요약 subprocess
 │       └── README.md
+├── skills/phone-notify/      # 폰으로 원문 보내기 지침 (호스트 도구 호출)
 ├── scripts/                 # 설치·검증 진입점
 └── tests/                   # 설치 회귀, 확장별 단위 테스트, Pi probe
 ```
@@ -35,6 +36,13 @@ pi-bootstrap/
 
 Pi SDK·TypeBox는 host-provided peer로 선언하며 runtime 의존성으로 번들하지 않습니다.
 다른 프로젝트에서도 독립 배포해야 하는 확장이 생기면 그때 별도 패키지로 분리합니다.
+
+## 스킬
+
+`skills/<이름>/SKILL.md`에 name·description frontmatter와 지침을 두고
+루트 `pi.skills`로 배포합니다. 장비의 주소·인증정보·서비스 설치를 스킬에 넣지 않습니다.
+`phone-notify`는 호스트의 `host-notify`만 호출하며 사용자의 명시적 전송 요청이 필요합니다.
+실제 Pi RPC `get_commands` 테스트로 패키지의 스킬 발견을 검증합니다.
 
 ## 검증
 

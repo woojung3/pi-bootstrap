@@ -7,6 +7,7 @@
 
 | 구분 | 항목 |
 |---|---|
+| 자체 스킬 | `phone-notify` — 명시적으로 요청한 텍스트를 호스트의 ntfy 도구로 전송 |
 | 자체 확장 | `pi-google-data-store-search` — Confluence·SharePoint 등 Data Store 검색 |
 | 외부 패키지 | `@narumitw/pi-statusline`, `@narumitw/pi-goal`, `@narumitw/pi-usage` |
 | 모델 설정 | `config/models.json` — LiteLLM 모델 catalog, API 키는 환경변수 참조 |
@@ -34,6 +35,25 @@ bootstrap은 설정을 검증한 뒤 버전이 고정된 Git 패키지와 외부
 ```sh
 pi install git:github.com/woojung3/pi-bootstrap@v0.6.0
 ```
+
+## 폰으로 보내기
+
+`skills/phone-notify/SKILL.md`는 “이 명령 폰으로 보내줘” 요청을 처리합니다.
+`/skill:phone-notify`로 직접 호출할 수도 있습니다. 호스트에 `host-notify`가 있어야 하며,
+주소·토픽·인증정보는 장비 설정 저장소에서 관리합니다. 자동 완료 알림과는 별개입니다.
+본문은 4096 UTF-8바이트 이내이며, ntfy 특성상 양끝 줄바꿈은 제외됩니다.
+내부 들여쓰기와 literal `\\n`은 보존합니다. 비밀정보는 보내지 않습니다.
+
+아직 release tag에 포함되지 않은 개발본 스킬만 사용하려면:
+
+```sh
+mkdir -p ~/.pi/agent/skills
+ln -s "$PWD/skills/phone-notify" ~/.pi/agent/skills/phone-notify
+```
+
+기존 경로가 있으면 덮어쓰지 말고 확인합니다. Pi에서 `/reload`한 뒤 사용하세요.
+이 스킬을 포함한 Git 패키지 release로 전환하면 중복 발견을 피하도록 위 개발용
+심볼릭 링크만 제거합니다. 패키지 설치·업데이트는 아래 개발·배포 문서를 따릅니다.
 
 ## 문서
 
