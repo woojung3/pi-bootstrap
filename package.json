@@ -1,6 +1,6 @@
 {
   "name": "pi-bootstrap",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "description": "Personal Pi environment bootstrap and Google Data Store search extension.",
   "keywords": [
@@ -13,11 +13,21 @@
   "type": "module",
   "pi": {
     "extensions": [
-      "./packages/pi-google-data-store-search/index.ts"
+      "./extensions/google-data-store-search/index.ts"
     ]
   },
   "scripts": {
-    "test": "python3 -m unittest discover -s tests -v && python3 scripts/verify-models.py"
+    "test": "python3 -m unittest discover -s tests -v && node --experimental-strip-types --test tests/*/*.test.ts && python3 scripts/verify-models.py",
+    "test:pi": "python3 scripts/smoke-pi.py",
+    "test:pi:live": "node --experimental-strip-types scripts/smoke-summary.ts"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "typebox": "*"
+  },
+  "peerDependenciesMeta": {
+    "@earendil-works/pi-coding-agent": { "optional": true },
+    "typebox": { "optional": true }
   },
   "dependencies": {
     "google-auth-library": "^10.6.2"

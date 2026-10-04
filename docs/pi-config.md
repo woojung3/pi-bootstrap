@@ -12,7 +12,9 @@ pi --list-models
 ```
 
 installer는 catalog를 검증한 뒤 `~/.pi/agent/models.json`을 0600 권한으로 원자적으로
-교체합니다. 사용자 설정의 기본 provider/model은 변경하지 않습니다.
+교체합니다. 내용이 바뀌면 기존 파일을 설정 디렉터리의 `backups/`에 보관하며, 같으면
+백업을 늘리지 않습니다. `PI_CODING_AGENT_DIR`로 대상 경로를 지정할 수 있습니다.
+사용자 설정의 기본 provider/model은 변경하지 않습니다.
 
 ## 비밀 주입
 
@@ -45,5 +47,5 @@ bootstrap은 `.envrc`를 자동 생성하거나 승인하지 않습니다. 환�
 있습니다. package 밖의 사용자 확장·스킬도 별도로 로드될 수 있습니다.
 
 검색 도구의 Google 인증과 source catalog는
-[검색 설정](../packages/pi-google-data-store-search/README.md)에서 관리합니다.
+[검색 설정](../extensions/google-data-store-search/README.md)에서 관리합니다.
 pi의 로그인 정보, 사용자 설정, 대화 기록은 이 저장소에 복제하지 않습니다.

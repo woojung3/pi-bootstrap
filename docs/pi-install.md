@@ -2,7 +2,7 @@
 
 ## 준비
 
-Node.js 22.19 이상, npm, Git, Python 3가 필요합니다. pi는 공식 설치 방법을 사용합니다.
+Node.js 22.19 이상, npm, Git, Python 3.11 이상이 필요합니다. pi는 공식 설치 방법을 사용합니다.
 
 ```sh
 npm install -g --ignore-scripts @earendil-works/pi-coding-agent
@@ -26,18 +26,24 @@ curl -fsSL https://pi.dev/install.sh | sh
 pi list
 ```
 
-기본 대상은 `~/.pi/agent`입니다. `PI_AGENT_DIR`를 지정하면 모델 설정과 패키지
-설치에 같은 경로를 사용합니다. bootstrap은 기존 모델 catalog를 교체하므로
-개인 수정이 있다면 먼저 원본에 반영하거나 따로 보관합니다.
+기본 대상은 `~/.pi/agent`입니다. pi 공식 변수인 `PI_CODING_AGENT_DIR`로
+별도 절대 경로를 지정하면 모델 설정과 패키지 설치가 모두 그 경로를 사용합니다.
+
+bootstrap은 패키지 설치 전에 설정 검증과 기존 settings 백업을 수행합니다.
+패키지 설치가 전부 성공한 뒤 모델 catalog를 백업·교체합니다. 백업은 설정 디렉터리의
+`backups/`에 0600으로 저장합니다. 패키지 설치 자체는 트랜잭션이 아니므로 실패 시
+일부 패키지만 갱신될 수 있습니다. 이 경우 모델 catalog는 그대로이며 `pi list`를
+확인한 뒤 재시도합니다.
 
 설치되는 패키지는 다음 네 개입니다.
 
-- `git:github.com/woojung3/pi-bootstrap@v0.5.0`
+- `git:github.com/woojung3/pi-bootstrap@v0.6.0`
 - `npm:@narumitw/pi-statusline`
 - `npm:@narumitw/pi-goal`
 - `npm:@narumitw/pi-usage`
 
-외부 npm 패키지는 버전 범위를 고정하지 않습니다. 설치 시 선택된 버전은 로컬에
+패키지 목록의 원본은 `config/packages.json`이며 확장이 늘어도 루트 Git 패키지로
+함께 배포합니다. 외부 npm 패키지는 버전 범위를 고정하지 않습니다. 설치 시 선택된 버전은 로컬에
 설치되며 `pi update --extensions`로 갱신합니다. 자체 Git 패키지는 tag에 고정됩니다.
 
 ## 인증과 시작

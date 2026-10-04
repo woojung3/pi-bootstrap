@@ -1,54 +1,82 @@
-# 패키지 개발·배포
+# 확장 개발·배포
 
-## 구조와 원본
+## 여러 확장을 담는 하나의 패키지
 
 ```text
 pi-bootstrap/
-├── config/models.json                    # 모델 catalog
-├── packages/pi-google-data-store-search/ # 자체 검색 확장
-├── scripts/                             # 설치·검증
-├── tests/                               # 부수효과 없는 설치 테스트
-└── package.json                         # 버전·Pi resource manifest
+├── package.json             # release 버전, pi.extensions, 공유 의존성
+├── package-lock.json        # 의존성 lockfile 하나
+├── config/
+│   ├── models.json          # 모델 catalog
+│   └── packages.json        # Git 저장소와 외부 패키지 목록
+├── extensions/
+│   └── google-data-store-search/
+│       ├── index.ts         # Pi 도구 등록·모듈 연결
+│       ├── types.ts         # 확장 내부 자료형
+│       ├── sources.ts       # 설정·별칭 검증, source 선택
+│       ├── search.ts        # Google API 요청
+│       ├── results.ts       # 결과 정규화·출력·fallback
+│       ├── synthesis.ts     # 격리된 Pi 요약 subprocess
+│       └── README.md
+├── scripts/                 # 설치·검증 진입점
+└── tests/                   # 설치 회귀, 확장별 단위 테스트, Pi probe
 ```
 
-운영 설치는 **tag에 고정된 루트 Git 패키지 하나**로 통일합니다. 개별 확장을
-로컬 경로로 중복 등록하지 않습니다. 루트 `pi.extensions`는 검색 확장만 선언합니다.
+확장은 여러 개가 될 수 있지만 운영 배포는 **버전 고정 루트 Git 패키지 하나**입니다.
+확장마다 package.json·lockfile·release 버전을 복제하지 않습니다.
 
-## 개발과 검증
+새 확장을 추가할 때:
+
+1. `extensions/<이름>/index.ts`와 기능 문서를 만듭니다.
+2. 루트 `pi.extensions`에 진입점만 추가합니다.
+3. 외부 runtime 의존성은 루트 `dependencies`에서 관리합니다.
+4. 해당 확장의 테스트를 추가합니다. 서로 다른 확장에 섣불리 공통 프레임워크를
+   도입하지 말고, 실제로 공유하는 기능이 생겼을 때만 분리합니다.
+
+Pi SDK·TypeBox는 host-provided peer로 선언하며 runtime 의존성으로 번들하지 않습니다.
+다른 프로젝트에서도 독립 배포해야 하는 확장이 생기면 그때 별도 패키지로 분리합니다.
+
+## 검증
 
 ```sh
-npm ci --ignore-scripts
+npm ci --ignore-scripts --omit=peer
 npm test
+npm run test:pi
 bash -n scripts/bootstrap.sh scripts/install-pi-config.sh
 ```
 
-로컬 개발본만 시험하려면 설치 설정을 바꾸지 않는 일회성 로드를 사용합니다.
+- `npm test`: 설치 실패 시 모델 보존, 백업, 실제 pi의 설정 경로 인식, 검색의
+  source 검증·요청·결과·요약·취소 처리. Google API와 모델 API는 mock으로 대체합니다.
+- `test:pi`: 실제 Pi RPC에서 production factory를 로드·등록하고, production execute
+  callback의 source 오류 경로를 검증합니다. 임시 설정을 사용하며 외부 API는 호출하지 않습니다.
+- `test:pi:live`: 실제 Pi subprocess와 모델 API를 사용합니다. 비용이 발생할 수 있으며
+  합성 테스트 문서만 전송합니다. 실제 Google 검색 검증과는 별개입니다.
 
 ```sh
-pi --no-extensions --extension ./packages/pi-google-data-store-search/index.ts
+npm run test:pi:live -- <provider> <model>
 ```
 
-이 명령은 다른 확장을 끄고 검색 확장만 로드합니다. Google 검색을 실행하면 실제
-API 요청과 모델 호출이 발생할 수 있습니다. 설정만 확인하는 테스트와 구분하세요.
+로컬 개발본만 대화형으로 시험할 때는 설정을 바꾸지 않는 일회성 로드를 사용합니다.
 
-모델 catalog는 `verify-models.py`의 계약 검사를 함께 유지합니다. 검색 확장의
-설정·동작은 확장 README를 원본으로 삼고, 상위 문서에는 링크만 둡니다.
+```sh
+pi --no-extensions --extension ./extensions/google-data-store-search/index.ts
+```
+
+검색 도구를 실행하면 실제 Google API 요청과 선택적 모델 호출이 발생합니다.
 
 ## Release
 
-1. 루트 `package.json`의 버전을 정하고 `npm install --package-lock-only --ignore-scripts`로
-   lockfile을 맞춥니다. 문서의 설치 tag도 함께 갱신합니다.
-2. 테스트와 diff를 검토하고 커밋·push합니다. 비밀이나 로컬 인증 파일을 포함하지 않습니다.
-3. 같은 commit에 `v<버전>` tag를 만들고 push합니다. 공개한 tag는 덮어쓰지 않습니다.
+1. 루트 `package.json`의 버전과 문서의 설치 tag를 갱신합니다.
+2. `npm install --package-lock-only --ignore-scripts --omit=peer` 후 검증합니다.
+3. commit·push 후 같은 commit에 `v<버전>` tag를 발행합니다. 공개된 tag는 덮어쓰지 않습니다.
 4. `pi install git:github.com/woojung3/pi-bootstrap@v<버전>`으로 설치본을 갱신합니다.
-5. `pi list`와 설치된 manifest를 확인하고 세션을 reload하거나 재시작합니다.
+5. `pi list`, 설치된 manifest를 확인하고 pi를 reload하거나 재시작합니다.
 
-bootstrap은 루트 `package.json`에서 버전을 읽습니다. 배포되지 않은 버전의 작업
-트리에서 bootstrap을 실행하면 해당 Git tag를 찾을 수 없으므로, 개발 중에는
-일회성 extension 로드를 사용합니다.
+bootstrap은 루트 버전에서 Git tag를 계산합니다. tag 발행 전 개발본은 위 일회성
+로드로 시험합니다. `pi update --extensions`는 고정 tag를 다음 release로 옮기지 않습니다.
 
-## 의존성
+## 변경 원칙
 
-Git 패키지의 runtime 의존성은 Pi가 설치합니다. 로컬 개발에서는 루트의
-`npm ci`를 사용합니다. SDK 등 Pi가 제공하는 패키지는 번들하지 않습니다.
-외부 확장 소스, Herdr 관리 파일, 개인 스킬을 이 저장소에 복사하지 않습니다.
+설정·검색·출력의 순수 로직은 Pi API와 분리하고, 네트워크·프로세스 경계는 테스트에서
+교체할 수 있게 유지합니다. 실제 계정의 비밀·문서 내용을 테스트 fixture에 넣지 않습니다.
+문서는 현재 사용법을 설명하고 변경 이력은 Git에 맡깁니다.
