@@ -1,76 +1,49 @@
-# Pi 설정법
+# 모델·환경 설정
 
-## 1. 모델 설정
+## 모델 catalog
 
-모델 설정의 원천은 `config/models.json`입니다. installer가 catalog를 검증한 뒤 `~/.pi/agent/models.json`을 mode `0600`으로 원자적으로 교체합니다. 설치 결과는 직접 편집하지 않습니다.
+원본은 `config/models.json`입니다. LiteLLM을 `openai-completions` 호환 provider로
+등록하고 API 키는 `$LITELLM_API_KEY`를 참조합니다. 실제 키를 JSON에 넣지 않습니다.
 
-```bash
+```sh
+python3 scripts/verify-models.py
 ./scripts/install-pi-config.sh
+pi --list-models
 ```
 
-현재 모델 설정은 `litellm` provider를 OpenAI Chat Completions 호환 API로 등록합니다.
+installer는 catalog를 검증한 뒤 `~/.pi/agent/models.json`을 0600 권한으로 원자적으로
+교체합니다. 사용자 설정의 기본 provider/model은 변경하지 않습니다.
 
-```json
-{
-  "providers": {
-    "litellm": {
-      "baseUrl": "https://aigw.autocrypt.co.kr/v1",
-      "api": "openai-completions",
-      "apiKey": "$LITELLM_API_KEY"
-    }
-  }
-}
-```
+## 비밀 주입
 
-설치 전 catalog만 검증하려면 `python3 scripts/verify-models.py`를 실행합니다.
+`LITELLM_API_KEY`는 장비의 secret loader에서 제공합니다. Firebat에서는 장비
+설정 저장소가 SOPS + age와 `.envrc` 참조를 관리하므로 여기서 다시 만들지 않습니다.
 
-## 2. 환경변수 / direnv
+다른 장비에서 direnv가 필요하면 `envrc.example`을 검토해 선택적으로 사용합니다.
+부모 환경을 불러오고 이미 주입된 키를 참조할 뿐, 키를 직접 입력하는 파일이 아닙니다.
 
-프로젝트 또는 개인 shell 설정에서 다음을 지정합니다.
-
-```bash
-export LITELLM_MASTER_KEY="..."
-export LITELLM_API_KEY="$LITELLM_MASTER_KEY"
-```
-
-`direnv`를 쓴다면:
-
-```bash
+```sh
 cp envrc.example .envrc
-$EDITOR .envrc
+# 내용을 검토한 뒤:
 direnv allow
 ```
 
-`.envrc`에는 실제 secret을 직접 쓰지 않는 것을 권장합니다. secret은 shell profile, password manager, 별도 private 파일에서 주입하세요.
+bootstrap은 `.envrc`를 자동 생성하거나 승인하지 않습니다. 환경변수의 실제 값을
+화면·로그·LLM 대화에 출력하지 마세요. 파일에 키가 없어도 같은 계정에서 실행되는
+프로세스는 로드된 환경변수에 접근할 수 있습니다.
 
-## 3. Statusline / Goal / Codex Usage 설치
+## 확장과 스킬
 
-```bash
-pi install npm:@narumitw/pi-statusline
-pi install npm:@narumitw/pi-goal
-pi install npm:@narumitw/pi-codex-usage
-```
+| 항목 | 관리 위치 |
+|---|---|
+| 자체 검색 확장 | 이 저장소의 Git 패키지 |
+| statusline·goal·usage | pi의 외부 npm 패키지 |
+| Herdr 상태 연동 | Herdr가 설치·관리하는 확장 |
+| find-skills·herdr 스킬 | 사용자 skill 디렉터리, 이 저장소 밖 |
 
-설치 결과는 `~/.pi/agent/settings.json`의 `packages` 배열과 `~/.pi/agent/npm/` 아래에 반영됩니다.
+`pi list`는 등록된 패키지를 보여줍니다. 리소스별 활성화는 `pi config`에서 확인할 수
+있습니다. package 밖의 사용자 확장·스킬도 별도로 로드될 수 있습니다.
 
-`pi-codex-usage`는 선택한 provider가 `openai-codex`일 때 5시간/주간 사용량을 statusline에 자동 표시하고 5분마다 갱신합니다. Pi 안에서 `/codex-status`로 즉시 조회하거나 `/codex-status --refresh`로 캐시를 무시하고 새로 조회할 수 있습니다. Pi의 `/login`에서 ChatGPT Plus/Pro 구독 인증을 사용해야 하며, 일반 OpenAI API key로는 구독 사용량을 조회할 수 없습니다.
-
-## 4. OpenAI 모델 로그인
-
-Pi 안에서:
-
-```text
-/login
-/model
-```
-
-`/login`으로 OpenAI 계열 provider 인증을 추가한 뒤 `/model`에서 원하는 모델을 선택합니다.
-
-## 5. 확인
-
-```bash
-pi --list-models
-pi list
-```
-
-Pi 실행 중에는 `/model`을 열 때 `models.json`이 다시 로드됩니다.
+검색 도구의 Google 인증과 source catalog는
+[검색 설정](../packages/pi-google-data-store-search/README.md)에서 관리합니다.
+pi의 로그인 정보, 사용자 설정, 대화 기록은 이 저장소에 복제하지 않습니다.

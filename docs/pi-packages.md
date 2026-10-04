@@ -1,140 +1,54 @@
-# Pi 패키지 배포/설치
+# 패키지 개발·배포
 
-Pi 패키지는 `package.json`의 `pi` 필드로 extension/skill/prompt/theme를 선언한 npm/git/local 패키지입니다.
-
-## 이 저장소의 전략
-
-`pi-bootstrap`은 monorepo입니다.
+## 구조와 원본
 
 ```text
 pi-bootstrap/
-  package.json
-  packages/
-    pi-yolo/
-    pi-academy/
-    pi-google-data-store-search/
-    pi-teams-notify/
+├── config/models.json                    # 모델 catalog
+├── packages/pi-google-data-store-search/ # 자체 검색 확장
+├── scripts/                             # 설치·검증
+├── tests/                               # 부수효과 없는 설치 테스트
+└── package.json                         # 버전·Pi resource manifest
 ```
 
-submodule 없이 하나의 GitHub repo에 설정과 개인 패키지를 같이 둡니다.
+운영 설치는 **tag에 고정된 루트 Git 패키지 하나**로 통일합니다. 개별 확장을
+로컬 경로로 중복 등록하지 않습니다. 루트 `pi.extensions`는 검색 확장만 선언합니다.
 
-## 전체 설치
+## 개발과 검증
 
-루트 `package.json`이 네 extension을 함께 선언하므로 repo 전체를 하나의 Pi package로 설치할 수 있습니다.
-
-```bash
-pi install git:github.com/woojung3/pi-bootstrap@v0.4.3
+```sh
+npm ci --ignore-scripts
+npm test
+bash -n scripts/bootstrap.sh scripts/install-pi-config.sh
 ```
 
-또는 로컬 clone에서 runtime dependency를 설치한 뒤 등록합니다. Git package와 달리 Pi의 로컬 경로 설치는 `npm install`을 자동 실행하지 않습니다.
+로컬 개발본만 시험하려면 설치 설정을 바꾸지 않는 일회성 로드를 사용합니다.
 
-```bash
-npm ci --omit=dev
-pi install .
+```sh
+pi --no-extensions --extension ./packages/pi-google-data-store-search/index.ts
 ```
 
-## 개별 설치
+이 명령은 다른 확장을 끄고 검색 확장만 로드합니다. Google 검색을 실행하면 실제
+API 요청과 모델 호출이 발생할 수 있습니다. 설정만 확인하는 테스트와 구분하세요.
 
-fresh clone에서는 먼저 루트 runtime dependency를 설치합니다.
+모델 catalog는 `verify-models.py`의 계약 검사를 함께 유지합니다. 검색 확장의
+설정·동작은 확장 README를 원본으로 삼고, 상위 문서에는 링크만 둡니다.
 
-```bash
-npm ci --omit=dev
-```
+## Release
 
-그다음 필요한 패키지를 등록합니다.
+1. 루트 `package.json`의 버전을 정하고 `npm install --package-lock-only --ignore-scripts`로
+   lockfile을 맞춥니다. 문서의 설치 tag도 함께 갱신합니다.
+2. 테스트와 diff를 검토하고 커밋·push합니다. 비밀이나 로컬 인증 파일을 포함하지 않습니다.
+3. 같은 commit에 `v<버전>` tag를 만들고 push합니다. 공개한 tag는 덮어쓰지 않습니다.
+4. `pi install git:github.com/woojung3/pi-bootstrap@v<버전>`으로 설치본을 갱신합니다.
+5. `pi list`와 설치된 manifest를 확인하고 세션을 reload하거나 재시작합니다.
 
-```bash
-pi install ./packages/pi-yolo
-pi install ./packages/pi-academy
-pi install ./packages/pi-google-data-store-search
-pi install ./packages/pi-teams-notify
-```
+bootstrap은 루트 `package.json`에서 버전을 읽습니다. 배포되지 않은 버전의 작업
+트리에서 bootstrap을 실행하면 해당 Git tag를 찾을 수 없으므로, 개발 중에는
+일회성 extension 로드를 사용합니다.
 
-## 현재 개인 패키지
+## 의존성
 
-### pi-yolo
-
-Always-Ask 도구 승인 게이트입니다. `/yolo`로 `always-ask`와 `yolo` 모드를 토글합니다.
-
-```bash
-pi install ./packages/pi-yolo
-```
-
-### pi-academy
-
-Pi 실전 8단계 튜토리얼/아카데미입니다. `/tutorial`로 시작합니다.
-
-```bash
-pi install ./packages/pi-academy
-```
-
-### pi-google-data-store-search
-
-Google Gemini Enterprise / Vertex AI Search Data Store source를 선택해 검색하는 도구입니다. Confluence, SharePoint 등 source catalog를 환경변수나 개인 JSON 파일로 설정합니다.
-
-```bash
-pi install ./packages/pi-google-data-store-search
-```
-
-자세한 설정은 [`../packages/pi-google-data-store-search/README.md`](../packages/pi-google-data-store-search/README.md)를 참고하세요.
-
-### pi-teams-notify
-
-Pi 작업이 재시도와 follow-up까지 완전히 끝나면 Teams webhook으로 알려줍니다. `/teams-notify smart|all|off|next|status|test`로 제어하고 `/teams-notify summary ...`로 한 줄 요약 방식을 선택합니다. Webhook은 권한 `0600`의 개인 설정 파일에 보관하는 방식을 권장합니다.
-
-```bash
-pi install ./packages/pi-teams-notify
-```
-
-자세한 설정은 [`../packages/pi-teams-notify/README.md`](../packages/pi-teams-notify/README.md)를 참고하세요.
-
-## GitHub 업로드 절차
-
-루트에서:
-
-```bash
-git init
-git add .
-git commit -m "Initial pi bootstrap"
-git branch -M main
-git remote add origin https://github.com/woojung3/pi-bootstrap
-git push -u origin main
-git tag v0.4.3
-git push origin v0.4.3
-```
-
-그 후:
-
-```bash
-pi install git:github.com/woojung3/pi-bootstrap@v0.4.3
-```
-
-## npm 배포 선택사항
-
-개별 패키지를 npm에 따로 배포할 수도 있습니다.
-
-```bash
-cd packages/pi-yolo
-npm pack --dry-run
-npm publish --access public
-
-cd ../pi-academy
-npm pack --dry-run
-npm publish --access public
-```
-
-npm 배포 후:
-
-```bash
-pi install npm:pi-yolo@1.1.0
-pi install npm:pi-academy@1.0.0
-pi install npm:pi-google-data-store-search@0.1.0
-```
-
-## 패키징 체크리스트
-
-- `package.json`에 `pi.extensions`가 있어야 합니다.
-- 검색성을 위해 `keywords`에 `pi-package`를 넣습니다.
-- 런타임 dependency는 `dependencies`에 둡니다.
-- Pi SDK type import는 `peerDependencies`에 `@earendil-works/pi-coding-agent: "*"`로 선언합니다.
-- `files` 필드를 둬서 `node_modules`, 테스트 산출물, 임시 파일이 tarball에 섞이지 않게 합니다.
+Git 패키지의 runtime 의존성은 Pi가 설치합니다. 로컬 개발에서는 루트의
+`npm ci`를 사용합니다. SDK 등 Pi가 제공하는 패키지는 번들하지 않습니다.
+외부 확장 소스, Herdr 관리 파일, 개인 스킬을 이 저장소에 복사하지 않습니다.

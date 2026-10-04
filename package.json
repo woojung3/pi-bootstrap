@@ -1,8 +1,8 @@
 {
   "name": "pi-bootstrap",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "private": true,
-  "description": "Personal Pi configuration, bootstrap scripts, and bundled Pi extensions.",
+  "description": "Personal Pi environment bootstrap and Google Data Store search extension.",
   "keywords": [
     "pi",
     "pi-package",
@@ -13,11 +13,11 @@
   "type": "module",
   "pi": {
     "extensions": [
-      "./packages/pi-yolo/index.ts",
-      "./packages/pi-academy/index.ts",
-      "./packages/pi-google-data-store-search/index.ts",
-      "./packages/pi-teams-notify/index.ts"
+      "./packages/pi-google-data-store-search/index.ts"
     ]
+  },
+  "scripts": {
+    "test": "python3 -m unittest discover -s tests -v && python3 scripts/verify-models.py"
   },
   "dependencies": {
     "google-auth-library": "^10.6.2"

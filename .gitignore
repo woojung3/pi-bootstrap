@@ -7,3 +7,5 @@ node_modules/
 **/node_modules/
 *.tgz
 .DS_Store
+__pycache__/
+*.pyc

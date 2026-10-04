@@ -6,19 +6,14 @@ The tool searches **one selected source per call**. For example, if the user ask
 
 ## Installation
 
-From this repository:
+Install the versioned root package, which exposes this search extension:
 
 ```bash
-pi install ./packages/pi-google-data-store-search
+pi install git:github.com/woojung3/pi-bootstrap@v0.5.0
 ```
 
-Project-local install:
-
-```bash
-pi install -l ./packages/pi-google-data-store-search
-```
-
-If the whole `pi-bootstrap` repository is installed as a git package, the root `package.json` also loads this extension.
+Do not also register a local copy of the same extension. For one-time development
+loading and release steps, see [package maintenance](../../docs/pi-packages.md).
 
 ## Authentication
 

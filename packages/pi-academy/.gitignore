@@ -1,8 +1,0 @@
-node_modules/
-*.tgz
-.DS_Store
-.env
-.envrc
-.pi-academy.json
-tutorial-clone/
-pi-reference/
