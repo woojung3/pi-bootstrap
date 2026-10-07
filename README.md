@@ -39,12 +39,16 @@ pi install git:github.com/woojung3/pi-bootstrap@v0.6.0
 ## 폰으로 보내기
 
 `skills/phone-notify/SKILL.md`는 “이 명령 폰으로 보내줘” 요청을 처리합니다.
-`/skill:phone-notify`로 직접 호출할 수도 있습니다. 호스트에 `host-notify`가 있어야 하며,
-주소·토픽·인증정보는 장비 설정 저장소에서 관리합니다. 자동 완료 알림과는 별개입니다.
-본문은 4096 UTF-8바이트 이내이며, ntfy 특성상 양끝 줄바꿈은 제외됩니다.
-내부 들여쓰기와 literal `\\n`은 보존합니다. 비밀정보는 보내지 않습니다.
+`/skill:phone-notify`로 직접 호출할 수도 있습니다. 로컬 전송 도구·설정이 있으면 직접 실행하고,
+없으면 `jwlee@minipc`에 SSH로 연결해 stdin으로 내용을 전달합니다.
+SSH 이름 해석·인증·접근 권한은 사용자가 설정하며, ntfy 인증정보는 minipc에만 둡니다.
+자동 완료 알림과는 별개이며, 전송 실패 시 다른 경로로 재시도하지 않습니다.
+본문은 4096 UTF-8바이트 초과 시 `message.txt`로 첨부합니다. `--attach`는 원본 바이트를
+보존하며 SSH stdin 첨부 이름은 `attachment.bin`입니다. 첨부 보관 설정은 24시간입니다.
+인라인 본문은 양끝 줄바꿈을 제외하고 내부 들여쓰기와 literal `\\n`을 보존합니다.
+비밀정보는 보내지 않습니다.
 
-아직 release tag에 포함되지 않은 개발본 스킬만 사용하려면:
+로컬 원본 스킬을 연결하려면:
 
 ```sh
 mkdir -p ~/.pi/agent/skills

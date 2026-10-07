@@ -40,8 +40,9 @@ Pi SDK·TypeBox는 host-provided peer로 선언하며 runtime 의존성으로 �
 ## 스킬
 
 `skills/<이름>/SKILL.md`에 name·description frontmatter와 지침을 두고
-루트 `pi.skills`로 배포합니다. 장비의 주소·인증정보·서비스 설치를 스킬에 넣지 않습니다.
-`phone-notify`는 호스트의 `host-notify`만 호출하며 사용자의 명시적 전송 요청이 필요합니다.
+루트 `pi.skills`로 배포합니다. 인증정보·서비스 설치는 호스트에서 관리합니다.
+`phone-notify`는 로컬 전송 환경이 있으면 직접, 없으면 `jwlee@minipc`에 SSH로
+접속해 `host-notify`를 호출합니다. 사용자의 명시적 전송 요청이 필요합니다.
 실제 Pi RPC `get_commands` 테스트로 패키지의 스킬 발견을 검증합니다.
 
 ## 검증
