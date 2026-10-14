@@ -2,7 +2,6 @@
 """Validate the checked-in Pi model catalog before installation."""
 
 import json
-import sys
 from pathlib import Path
 
 
