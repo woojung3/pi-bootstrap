@@ -16,6 +16,37 @@ installer는 catalog를 검증한 뒤 `~/.pi/agent/models.json`을 0600 권한�
 백업을 늘리지 않습니다. `PI_CODING_AGENT_DIR`로 대상 경로를 지정할 수 있습니다.
 사용자 설정의 기본 provider/model은 변경하지 않습니다.
 
+### Claude 5.5 Gateway 계약
+
+`sonnet`/`haiku`는 각각 `claude-sonnet-5-5`/`claude-haiku-5-5`와 ID·표시 이름을
+제외한 metadata가 같습니다. 기존 Sonnet 5·Haiku 4.5 고정 ID와 Grok 4.6은 유지하고,
+Grok 4.3·4.5와 도입 보류 중인 Gemini 4 Argon은 노출하지 않습니다.
+근거는 sibling `internal-ai-platform/services/ai-gateway/config.template.yaml`과
+`docs/litellm-compatibility/model-013-vertex-claude-sonnet-5.5.md`,
+`model-014-vertex-claude-haiku-5.5.md`입니다 (LiteLLM v1.105.1).
+
+두 모델은 context 1,000,000 / output 128,000, Pi가 지원하는 text·image 입력을
+선언합니다. Gateway의 PDF 지원은 Pi modality로 추가하지 않습니다.
+백만 token당 input/output/cache read/5분 cache write 가격은 Sonnet
+$2/$10/$0.2/$2.5, Haiku $0.5/$2.5/$0.05/$0.625입니다. 할인 및 짧은 context
+가격을 적용하지 않는 Gateway 보수적 단가입니다. Pi는 1시간 cache write usage가
+구분되어 전달될 때 input × 2로 계산하므로 각각 $4/$1과 일치합니다. 실제 usage가
+누락되면 catalog 가격만으로 비용 정합성을 보장하지 못합니다.
+
+설치된 Pi 1.2.0의 `pi-ai/dist/providers/model-schema`, `dist/models.js` 및
+`dist/api/openai-completions.js`에서 다음 동작을 확인했습니다.
+
+- `thinkingLevelMap`의 `null`은 지원 level에서 제외합니다. Sonnet은 `off: null`로
+  off를 제외하고, `minimal`은 두 모델 모두 `low` effort로 매핑합니다.
+- Sonnet의 `between_tools`는 disabled와 다릅니다. 일반 OpenAI-compatible mapping은
+  문자열을 `reasoning_effort`로 보낼 뿐 native `thinking.type`으로 바꾸지 않습니다.
+  따라서 `between_tools`를 임의로 매핑하지 않습니다. Sonnet에서 off를 요청하면 Pi는
+  지원 level로 clamp하므로 완전 비활성화가 아닙니다.
+- Haiku의 off는 기존처럼 effort를 생략합니다. Native disabled 지원과 Pi의 effort
+  생략은 동일한 계약이 아니며, 실제 비활성화 여부는 별도 acceptance 대상입니다.
+- 실제 Pi text/thinking/tool/image 호출은 catalog 정적 검증과 별개입니다. Gateway의
+  cache usage 및 단발 tool-result 422 잔여 제약도 별도 acceptance에서 확인해야 합니다.
+
 ## 기본 도구
 
 bootstrap은 Pi 내장 Codemode를 기본 활성화합니다. 도구 결과를 코드로 필터링·집계한 뒤
