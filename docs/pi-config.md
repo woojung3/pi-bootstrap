@@ -16,6 +16,28 @@ installer는 catalog를 검증한 뒤 `~/.pi/agent/models.json`을 0600 권한�
 백업을 늘리지 않습니다. `PI_CODING_AGENT_DIR`로 대상 경로를 지정할 수 있습니다.
 사용자 설정의 기본 provider/model은 변경하지 않습니다.
 
+## 기본 도구
+
+bootstrap은 Pi 내장 Codemode를 기본 활성화합니다. 도구 결과를 코드로 필터링·집계한 뒤
+필요한 출력만 모델에 전달할 수 있습니다. 별도 패키지 설치는 필요하지 않습니다.
+기존 `defaultTools` 선택과 나머지 사용자 설정은 보존합니다.
+Google Data Store 검색은 기본 비활성화입니다. 루트 manifest에서 검색 확장을 제외하고,
+installer는 기존 pi-bootstrap Git 패키지에도 검색 진입점 제외 필터를 병합합니다.
+`process_content`·Skill·다른 패키지는 유지합니다. 사용자가 별도 경로로 명시적으로
+로드한 검색 확장은 자동 제거하지 않습니다.
+
+```sh
+python3 scripts/install-pi-tools.py
+```
+
+위 명령은 도구 설정만 적용합니다. 변경 전 `settings.json`을 `backups/`에 0600으로
+백업하고 원자적으로 갱신하며, 재실행 시 변경이 없으면 백업을 만들지 않습니다.
+`PI_CODING_AGENT_DIR`로 대상을 지정할 수 있습니다. 명시적으로 비활성화한
+`builtin:codemode`나 심볼릭 링크 설정 파일은 자동으로 덮어쓰지 않습니다.
+활성 세션에서는 `/reload`하거나 Pi를 새로 시작합니다.
+CLI의 `--no-tools`, `--tools`, `--no-extensions` 등 실행별 선택은 별도로 확인합니다.
+Codemode 활성화만으로 모델을 호출하거나 조회·전송 작업을 실행하지 않습니다.
+
 ## 비밀 주입
 
 `LITELLM_API_KEY`는 장비의 secret loader에서 제공합니다. Firebat에서는 장비
@@ -38,7 +60,8 @@ bootstrap은 `.envrc`를 자동 생성하거나 승인하지 않습니다. 환�
 
 | 항목 | 관리 위치 |
 |---|---|
-| 자체 검색 확장 | 이 저장소의 Git 패키지 |
+| `process_content` | 이 저장소의 Git 패키지 |
+| Google Data Store 검색 확장 | 소스 보존·기본 비활성화; 필요할 때 명시적으로 로드 |
 | statusline·goal·usage | pi의 외부 npm 패키지 |
 | Herdr 상태 연동 | Herdr가 설치·관리하는 확장 |
 | find-skills·herdr 스킬 | 사용자 skill 디렉터리, 이 저장소 밖 |

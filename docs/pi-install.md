@@ -35,9 +35,13 @@ bootstrap은 패키지 설치 전에 설정 검증과 기존 settings 백업을 
 일부 패키지만 갱신될 수 있습니다. 이 경우 모델 catalog는 그대로이며 `pi list`를
 확인한 뒤 재시도합니다.
 
+도구 기본값은 Codemode 활성화·Google Data Store 검색 비활성화입니다.
+`process_content`와 `phone-notify`는 루트 패키지로 배포합니다.
+기본 설정만 적용하려면 `python3 scripts/install-pi-tools.py`를 사용합니다.
+
 설치되는 패키지는 다음 네 개입니다.
 
-- `git:github.com/woojung3/pi-bootstrap@v0.6.0`
+- `git:github.com/woojung3/pi-bootstrap@v0.7.0`
 - `npm:@narumitw/pi-statusline`
 - `npm:@narumitw/pi-goal`
 - `npm:@narumitw/pi-usage`

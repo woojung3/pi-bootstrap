@@ -22,7 +22,6 @@ async def smoke():
             "pi", "--mode", "rpc", "--offline", "--no-session", "--no-approve",
             "--no-context-files", "--no-skills", "--no-prompt-templates", "--no-extensions",
             "--extension", str(ROOT / "tests/fixtures/pi-probe.ts"),
-            "--tools", "google_data_store_search",
             cwd=directory, env=env, stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
@@ -51,7 +50,7 @@ async def smoke():
             diagnostics = (await stderr).decode(errors="replace")
             if process.returncode != 0 or diagnostics.strip():
                 raise RuntimeError("Pi smoke test returned diagnostics or a nonzero exit.")
-            print("Real Pi RPC: search registered, invalid source rejected, no external API call.")
+            print("Real Pi RPC: search validation, process_content codemode exposure and mocked model execution OK; no external API call.")
         finally:
             if process.returncode is None:
                 process.terminate()

@@ -6,11 +6,19 @@ Confluence·SharePoint 커넥터 등을 이름·별칭으로 선택합니다.
 
 ## 설치
 
+**기본 비활성화**이며 루트 패키지의 자동 로딩 대상이 아닙니다. 코드는 선택적으로 사용할 수
+있도록 보존합니다. 기존 pi-bootstrap Git 설치본도 `scripts/install-pi-tools.py`가
+검색 진입점만 제외하며 인증정보·source catalog·검색 코드는 삭제하지 않습니다.
+
+저장소 루트에서 필요한 세션에만 명시적으로 로드합니다.
+
 ```sh
-pi install git:github.com/woojung3/pi-bootstrap@v0.6.0
+pi --extension ./extensions/google-data-store-search/index.ts
 ```
 
-루트 Git 패키지에 포함됩니다. 같은 확장의 로컬 복사본을 추가 등록하지 않습니다.
+계속 사용하려면 `~/.pi/agent/settings.json`의 `extensions`에 위 진입점의 **절대 경로**를
+추가하고 `/reload`합니다. 이 명시적 설정은 bootstrap이 제거하지 않습니다.
+이미 다른 경로로 로드했다면 중복 등록하지 마세요.
 개발·테스트 방법은 [확장 개발](../../docs/pi-packages.md)을 참고하세요.
 
 ## 인증

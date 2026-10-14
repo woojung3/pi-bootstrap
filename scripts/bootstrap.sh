@@ -43,6 +43,7 @@ while IFS= read -r source; do
 done <<< "$SOURCES"
 
 "$ROOT/scripts/install-pi-config.sh"
+python3 "$ROOT/scripts/install-pi-tools.py"
 printf '\n%s\n' \
   'Bootstrap complete. Verify with: pi list' \
   'Provide LITELLM_API_KEY through your local secret loader.' \

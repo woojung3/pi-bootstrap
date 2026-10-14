@@ -15,7 +15,8 @@ class BootstrapTests(unittest.TestCase):
     def test_manifest_paths_and_single_dependency_root(self):
         package = json.loads((ROOT / "package.json").read_text())
         paths = package["pi"]["extensions"]
-        self.assertIn("./extensions/google-data-store-search/index.ts", paths)
+        self.assertNotIn("./extensions/google-data-store-search/index.ts", paths)
+        self.assertIn("./extensions/process-content/index.ts", paths)
         self.assertEqual(len(paths), len(set(paths)))
         for resource in paths:
             self.assertTrue((ROOT / resource).is_file())

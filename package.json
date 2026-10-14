@@ -1,8 +1,8 @@
 {
   "name": "pi-bootstrap",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
-  "description": "Personal Pi environment bootstrap and Google Data Store search extension.",
+  "description": "Personal Pi bootstrap with Codemode content processing and optional enterprise search.",
   "keywords": [
     "pi",
     "pi-package",
@@ -13,7 +13,7 @@
   "type": "module",
   "pi": {
     "extensions": [
-      "./extensions/google-data-store-search/index.ts"
+      "./extensions/process-content/index.ts"
     ],
     "skills": ["./skills"]
   },
