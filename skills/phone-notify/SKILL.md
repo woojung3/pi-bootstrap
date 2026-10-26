@@ -16,7 +16,7 @@ Use local execution only when both executables and the configuration exist:
 ```sh
 test -x "$HOME/.local/bin/host-notify" &&
   test -x "$HOME/.local/bin/host-secrets" &&
-  test -f "$HOME/.config/herdr-notifier/config.json"
+  test -f "$HOME/.config/host-notify/report.json"
 ```
 
 Check existence only; do not read credentials or configuration contents.
@@ -26,7 +26,8 @@ SSH authentication and access policy. Use `-T` (no pseudo-terminal),
 change SSH settings or install credentials. If SSH is unavailable or access fails,
 report the prerequisite and stop.
 
-The sender on minipc owns the endpoint, `herdr` topic and scoped authentication.
+The sender on minipc owns the endpoint, authenticated `report` topic and scoped authentication.
+Always select `--channel report`; do not change the sender's default for other callers or fall back to another topic.
 Do not install services, print secret environments, invent a public endpoint,
 add a topic, change phone settings or copy credentials to another machine.
 Never switch routes after a send attempt: an error may still mean delivery.
@@ -59,13 +60,13 @@ Use these commands only when the local environment check succeeds.
 For an existing reviewed UTF-8 file:
 
 ```sh
-"$HOME/.local/bin/host-notify" --title '스크립트' --body '/absolute/path/to/script.sh'
+"$HOME/.local/bin/host-notify" --channel report --title '스크립트' --body '/absolute/path/to/script.sh'
 ```
 
 For an explicitly requested, reviewed file attachment:
 
 ```sh
-"$HOME/.local/bin/host-notify" --title '파일' --attach '/absolute/path/to/file.txt'
+"$HOME/.local/bin/host-notify" --channel report --title '파일' --attach '/absolute/path/to/file.txt'
 ```
 
 `--body` may accompany `--attach` as a UTF-8 caption file (at most 4096 bytes).
@@ -76,7 +77,7 @@ For a short literal message, use stdin with a quoted heredoc and a delimiter tha
 is not a line in the content (the heredoc includes a final newline):
 
 ```sh
-"$HOME/.local/bin/host-notify" --title '명령어' <<'PHONE_TEXT_END'
+"$HOME/.local/bin/host-notify" --channel report --title '명령어' <<'PHONE_TEXT_END'
 REPLACE_WITH_THE_USER_REQUESTED_LITERAL_TEXT
 PHONE_TEXT_END
 ```
@@ -89,11 +90,11 @@ No `scp` upload or remote temporary file is needed.
 ```sh
 # UTF-8 body; over 4096 bytes becomes message.txt automatically.
 ssh -T -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10 jwlee@minipc \
-  '~/.local/bin/host-notify --title "스크립트" --body -' < '/absolute/path/to/script.sh'
+  '~/.local/bin/host-notify --channel report --title "스크립트" --body -' < '/absolute/path/to/script.sh'
 
 # Exact file bytes; stdin attachments are named attachment.bin.
 ssh -T -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10 jwlee@minipc \
-  '~/.local/bin/host-notify --title "파일" --attach -' < '/absolute/path/to/file.txt'
+  '~/.local/bin/host-notify --channel report --title "파일" --attach -' < '/absolute/path/to/file.txt'
 ```
 
 For literal text, use the same SSH body command with the quoted heredoc shown

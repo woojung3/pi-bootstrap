@@ -41,7 +41,7 @@ bootstrap은 패키지 설치 전에 설정 검증과 기존 settings 백업을 
 
 설치되는 패키지는 다음 네 개입니다.
 
-- `git:github.com/woojung3/pi-bootstrap@v0.7.0`
+- `git:github.com/woojung3/pi-bootstrap@v0.7.1`
 - `npm:@narumitw/pi-statusline`
 - `npm:@narumitw/pi-goal`
 - `npm:@narumitw/pi-usage`

@@ -37,7 +37,7 @@ bootstrap은 설정을 검증한 뒤 버전이 고정된 Git 패키지와 외부
 확장만 설치하려면:
 
 ```sh
-pi install git:github.com/woojung3/pi-bootstrap@v0.7.0
+pi install git:github.com/woojung3/pi-bootstrap@v0.7.1
 ```
 
 ## 폰으로 보내기
@@ -46,7 +46,9 @@ pi install git:github.com/woojung3/pi-bootstrap@v0.7.0
 `/skill:phone-notify`로 직접 호출할 수도 있습니다. 로컬 전송 도구·설정이 있으면 직접 실행하고,
 없으면 `jwlee@minipc`에 SSH로 연결해 stdin으로 내용을 전달합니다.
 SSH 이름 해석·인증·접근 권한은 사용자가 설정하며, ntfy 인증정보는 minipc에만 둡니다.
-자동 완료 알림과는 별개이며, 전송 실패 시 다른 경로로 재시도하지 않습니다.
+명시적으로 `report` 채널을 선택하며 전송 도구의 기존 기본값은 바꾸지 않습니다.
+자동 완료 알림과는 별개이며, 전송 실패 시 다른 경로·토픽으로 재시도하지 않습니다.
+호스트의 report 설정·ACL·폰 구독은 dotfiles 운영 절차로 별도 준비해야 합니다.
 본문은 4096 UTF-8바이트 초과 시 `message.txt`로 첨부합니다. `--attach`는 원본 바이트를
 보존하며 SSH stdin 첨부 이름은 `attachment.bin`입니다. 첨부 보관 설정은 24시간입니다.
 인라인 본문은 양끝 줄바꿈을 제외하고 내부 들여쓰기와 literal `\\n`을 보존합니다.

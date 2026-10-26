@@ -34,6 +34,10 @@ class PhoneSkillTests(unittest.TestCase):
         self.assertIn('--attach -', text)
         self.assertIn('attachment.bin', text)
         self.assertIn('Never switch routes after a send attempt', text)
+        self.assertIn('--channel report', text)
+        for line in text.splitlines():
+            if ('host-notify" --' in line or 'host-notify --' in line):
+                self.assertIn('--channel report', line)
         self.assertIn('Do not pipe a remote', text)
 
     def test_local_route_requires_complete_environment(self):
@@ -43,7 +47,7 @@ class PhoneSkillTests(unittest.TestCase):
             home = Path(directory)
             sender = home / '.local/bin/host-notify'
             secrets = home / '.local/bin/host-secrets'
-            config = home / '.config/herdr-notifier/config.json'
+            config = home / '.config/host-notify/report.json'
             for path in (sender, secrets, config):
                 path.parent.mkdir(parents=True, exist_ok=True)
             for mask in range(8):

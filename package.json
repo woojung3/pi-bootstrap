@@ -1,6 +1,6 @@
 {
   "name": "pi-bootstrap",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "private": true,
   "description": "Personal Pi bootstrap with Codemode content processing and optional enterprise search.",
   "keywords": [
