@@ -10,12 +10,11 @@ MODEL_FILE = ROOT / "config" / "models.json"
 REQUIRED_MODELS = {
     "claude-sonnet-5-5": (1_000_000, 128_000, {"text", "image"}, True),
     "claude-haiku-5-5": (1_000_000, 128_000, {"text", "image"}, True),
-    "claude-sonnet-5": (1_000_000, 128_000, {"text", "image"}, True),
-    "claude-haiku-4-5": (200_000, 8_192, {"text", "image"}, True),
+    "gemini-4-argon": (1_048_576, 1_048_576, {"text", "image"}, True),
+    "deepseek-v4.1-flash": (1_048_576, 1_048_576, {"text", "image"}, True),
     "gemini-3.8-flash": (1_048_576, 65_536, {"text", "image"}, True),
     "glm-5.2": (1_000_000, 64_000, {"text"}, True),
-    "grok-4.6": (524_288, 32_768, {"text", "image"}, True),
-    "chatgpt-6-astra": (372_000, 128_000, {"text", "image"}, True),
+
     "claude-opus-5-5": (1_000_000, 128_000, {"text", "image"}, True),
     "chatgpt-6-sol": (1_050_000, 128_000, {"text", "image"}, True),
     "chatgpt-6.1-sol": (1_050_000, 128_000, {"text", "image"}, True),
@@ -63,9 +62,22 @@ def main() -> None:
         if model.get("reasoning") is not reasoning:
             fail(f"reasoning metadata does not match the accepted contract: {model_id}")
 
-    forbidden = {"grok-4.3", "grok-4.5", "gemini-4-argon"}
-    if forbidden.intersection(by_id) or any("argon" in model_id.lower() for model_id in ids):
-        fail("retired Grok models and deferred Gemini Argon must not be exposed")
+    forbidden = {"claude-sonnet-5","claude-haiku-4-5","qwen3-coder-480b","deepseek-v3.2","gemma-4.26b","deepseek-r1","qwen3-80b-instruct","glm-5","qwen3-80b-thinking","kimi-k2-thinking","gpt-oss-120b","chatgpt-6-astra"}
+    if forbidden.intersection(by_id) or any(
+        model_id.startswith("grok-") or model_id == "gemini-4-argon-preview" for model_id in ids
+    ):
+        fail("retired or unapproved models must not be exposed")
+    for model_id, prices in (
+        ("gemini-4-argon", (4, 20, 0.2)),
+        ("deepseek-v4.1-flash", (0.3, 1.2, 0.03)),
+    ):
+        model = by_id[model_id]
+        if model.get("cost") != dict(zip(("input", "output", "cacheRead", "cacheWrite"), (*prices, 0))):
+            fail(f"Google managed normal prices do not match: {model_id}")
+        if model.get("thinkingLevelMap") != {"off": None, "minimal": "low"}:
+            fail(f"thinking mapping does not match: {model_id}")
+        if model.get("compat") != {"supportsReasoningEffort": True}:
+            fail(f"reasoning effort compatibility does not match: {model_id}")
     for alias, fixed, cost, thinking in (
         ("sonnet", "claude-sonnet-5-5",
          {"input": 2, "output": 10, "cacheRead": 0.2, "cacheWrite": 2.5},

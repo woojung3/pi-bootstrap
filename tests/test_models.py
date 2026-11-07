@@ -74,8 +74,10 @@ for (const id of ['sonnet', 'claude-sonnet-5-5', 'haiku', 'claude-haiku-5-5']) {
                     self.validate()
                 self.models.append(model)
 
-    def test_retired_and_deferred_models_rejected(self):
-        for model_id in ("grok-4.3", "grok-4.5", "gemini-4-argon", "gemini-4-argon-preview"):
+    def test_retired_and_unapproved_models_rejected(self):
+        for model_id in ("grok-4.3", "grok-4.5", "grok-4.6", "grok-4.7",
+                         "gemini-4-argon-preview", "chatgpt-6-astra", "gpt-oss-120b",
+                         "deepseek-v3.2", "claude-sonnet-5", "claude-haiku-4-5"):
             with self.subTest(model=model_id):
                 self.models.append({"id": model_id})
                 with self.assertRaises(SystemExit):
@@ -89,6 +91,23 @@ for (const id of ['sonnet', 'claude-sonnet-5-5', 'haiku', 'claude-haiku-5-5']) {
                 ("input", ["text"]), ("reasoning", False),
                 ("cost", {"input": 0, "output": 0, "cacheRead": 0, "cacheWrite": 0}),
                 ("thinkingLevelMap", {"off": "between_tools"}),
+                ("compat", {"supportsReasoningEffort": False}),
+            ):
+                with self.subTest(model=model_id, field=field):
+                    model = self.by_id[model_id]
+                    original = copy.deepcopy(model)
+                    model[field] = value
+                    with self.assertRaises(SystemExit):
+                        self.validate()
+                    model.clear()
+                    model.update(original)
+
+    def test_partner_metadata_regressions_rejected(self):
+        for model_id in ("gemini-4-argon", "deepseek-v4.1-flash"):
+            for field, value in (
+                ("contextWindow", 200000), ("maxTokens", 8192),
+                ("input", ["text"]), ("reasoning", False),
+                ("cost", {}), ("thinkingLevelMap", {}),
                 ("compat", {"supportsReasoningEffort": False}),
             ):
                 with self.subTest(model=model_id, field=field):

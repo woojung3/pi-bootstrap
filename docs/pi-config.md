@@ -29,7 +29,22 @@ metadata를 사용합니다. 두 모델 모두 context 1M, output 128K, text·im
 - 두 모델의 minimal은 low effort로 처리합니다.
 - Haiku의 off는 effort 생략이며, 실제 thinking 비활성화를 보장하지 않습니다.
 
-Catalog 검증은 실제 모델 호출의 동작이나 비용 정합성을 보장하지 않습니다.
+제한된 Gateway 합성 native tool-result/cache 실패만으로 Sonnet을 catalog에서
+제거하지 않습니다. 실제 Pi 소비자 검증과 Gateway 잔여 검증을 구분합니다.
+
+### 선택 모델
+
+`gemini-4-argon`과 `deepseek-v4.1-flash`(Preview)는 기본 모델을 바꾸지 않는
+선택 모델입니다. 두 모델 모두 text·image 입력, context·최대 출력 1,048,576을
+선언하며 Pi는 low/medium/high effort를 사용합니다. Off는 노출하지 않고 minimal은
+low로 매핑합니다. 이는 provider의 thinking 완전 비활성화를 보장하지 않습니다.
+Argon 가격은 사후 promotional credit을 뺀 정상 global 단가이고 DeepSeek 가격은
+Google managed endpoint 기준입니다. Cache write 별도 단가 0은 implicit caching이
+무료 입력이라는 뜻이 아닙니다. Grok과 퇴역 모델은 제공하지 않습니다.
+
+Catalog 검증과 짧은 실제 Pi smoke는 Gateway의 장문 continuation, cache·비용
+정합성을 보장하지 않습니다. 해당 잔여 검증은 Gateway compatibility register에서
+별도로 관리합니다.
 
 ## 기본 도구
 
