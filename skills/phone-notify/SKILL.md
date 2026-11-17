@@ -26,7 +26,9 @@ SSH authentication and access policy. Use `-T` (no pseudo-terminal),
 change SSH settings or install credentials. If SSH is unavailable or access fails,
 report the prerequisite and stop.
 
-The sender on minipc owns the endpoint, authenticated `report` topic and scoped authentication.
+This route uses the user's own ntfy server, self-hosted on their minipc, and its
+authenticated `report` topic. Do not treat it as a public ntfy service or a
+publicly readable topic. The sender on minipc owns the endpoint and scoped authentication.
 Always select `--channel report`; do not change the sender's default for other callers or fall back to another topic.
 Do not install services, print secret environments, invent a public endpoint,
 add a topic, change phone settings or copy credentials to another machine.
@@ -45,8 +47,13 @@ Never switch routes after a send attempt: an error may still mean delivery.
 - Inspect the intended content before sending. Do not transmit private keys,
   passwords, tokens, `.env`/credential files, or secret-loader output. If unsure,
   stop and ask; offer a redacted version only with the user's approval.
-- Notifications may appear on the lock screen and be cached by ntfy. Do not send
-  confidential work content without confirming it is intended for this channel.
+- Notifications may appear on the lock screen and be cached by ntfy. An explicit
+  user request to send specific content to their phone or via ntfy confirms the
+  intended content and channel; do not ask for the same approval again or repeat
+  generic disclosure warnings for ordinary commands, scripts, URLs, or notes.
+  Ask for clarification only when the content or destination is ambiguous.
+  The secret-content prohibition above still applies: self-hosting does not make
+  every payload safe to send.
 - The body limit is 4096 UTF-8 bytes, not characters. Larger reviewed text is
   automatically uploaded as `message.txt` to the same ntfy server, without
   normalization or truncation. Tell the user it was accepted as an attachment,
