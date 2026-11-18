@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Apply Codemode-on / bundled Data Store search-off defaults, preserving other settings."""
+"""Apply managed startup model and tool defaults, preserving other settings."""
 import json
 import os
 import re
@@ -55,13 +55,23 @@ def disable_bundled_search(settings):
     return {**settings, "packages": merged}
 
 
+def apply_model_defaults(settings):
+    path = Path(__file__).resolve().parents[1] / "config/pi-defaults.json"
+    defaults = json.loads(path.read_text())
+    if (not isinstance(defaults, dict)
+            or set(defaults) != {"defaultProvider", "defaultModel"}
+            or not all(isinstance(v, str) and v.strip() for v in defaults.values())):
+        raise ValueError("Pi defaults must contain a nonempty provider and model")
+    return {**settings, **defaults}
+
+
 def install(agent):
     path = agent / "settings.json"
     if path.is_symlink():
         raise ValueError("Refusing to replace a symlinked settings.json")
     old = path.read_bytes() if path.exists() else None
     settings = json.loads(old) if old is not None else {}
-    updated = disable_bundled_search(enable_codemode(settings))
+    updated = apply_model_defaults(disable_bundled_search(enable_codemode(settings)))
     if "-builtin:codemode" in settings.get("extensions", []):
         raise ValueError("builtin:codemode is disabled; review extensions first")
     if updated == settings:
@@ -94,4 +104,4 @@ if __name__ == "__main__":
         changed = install(agent)
     except (ValueError, OSError) as exc:
         raise SystemExit(f"Cannot apply Pi defaults ({type(exc).__name__}); check settings and permissions") from None
-    print("Pi defaults applied: Codemode on, bundled Data Store search off; reload Pi." if changed else "Pi defaults already applied.")
+    print("Pi defaults applied: managed startup model, Codemode on, bundled Data Store search off; start a new Pi session." if changed else "Pi defaults already applied.")

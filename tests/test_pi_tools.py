@@ -83,12 +83,22 @@ class PiToolsTests(unittest.TestCase):
             self.assertFalse(tools.install(agent))
             self.assertEqual(list((agent / "backups").iterdir()), backups)
 
+    def test_model_defaults_replace_only_startup_selection(self):
+        settings = {"defaultProvider": "old", "defaultModel": "old-model",
+                    "defaultThinkingLevel": "high", "theme": "keep", "packages": ["keep"]}
+        result = tools.apply_model_defaults(settings)
+        self.assertEqual(result, {**settings, "defaultProvider": "openai-codex",
+                                  "defaultModel": "gpt-6.2-astra"})
+        self.assertEqual(tools.apply_model_defaults(result), result)
+        self.assertEqual(settings["defaultModel"], "old-model")
+
     def test_new_settings(self):
         with tempfile.TemporaryDirectory() as d:
             agent = Path(d) / "agent"
             tools.install(agent)
             self.assertEqual(json.loads((agent / "settings.json").read_text()),
-                             {"defaultTools": ["+codemode"]})
+                             {"defaultTools": ["+codemode"], "defaultProvider": "openai-codex",
+                              "defaultModel": "gpt-6.2-astra"})
 
     def test_refuse_disabled_builtin_or_symlink(self):
         with tempfile.TemporaryDirectory() as d:

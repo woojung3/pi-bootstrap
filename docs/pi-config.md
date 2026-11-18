@@ -46,7 +46,14 @@ Catalog 검증과 짧은 실제 Pi smoke는 Gateway의 장문 continuation, cach
 정합성을 보장하지 않습니다. 해당 잔여 검증은 Gateway compatibility register에서
 별도로 관리합니다.
 
-## 기본 도구
+## 시작 모델과 기본 도구
+
+Pi의 시작 모델 원본은 `config/pi-defaults.json`이며 `openai-codex/gpt-6.2-astra`를 사용합니다.
+bootstrap과 `scripts/install-pi-tools.py`가 `settings.json`의 `defaultProvider`·`defaultModel`을
+이 값으로 갱신합니다. thinking 수준·인증·다른 사용자 설정은 보존합니다.
+Pi 기본 제공 모델 catalog를 사용하며 LiteLLM catalog에 복제하지 않습니다.
+새 세션의 기본값이며 재개한 세션의 모델·프로젝트/CLI 재정의는 별개입니다.
+자동화 앱·Swarm·`process_content`의 모델 선택은 바꾸지 않습니다.
 
 bootstrap은 Pi 내장 Codemode를 기본 활성화합니다. 도구 결과를 코드로 필터링·집계한 뒤
 필요한 출력만 모델에 전달할 수 있습니다. 별도 패키지 설치는 필요하지 않습니다.
@@ -60,7 +67,7 @@ installer는 기존 pi-bootstrap Git 패키지에도 검색 진입점 제외 필
 python3 scripts/install-pi-tools.py
 ```
 
-위 명령은 도구 설정만 적용합니다. 변경 전 `settings.json`을 `backups/`에 0600으로
+위 명령은 시작 모델과 도구 기본값을 적용합니다. 변경 전 `settings.json`을 `backups/`에 0600으로
 백업하고 원자적으로 갱신하며, 재실행 시 변경이 없으면 백업을 만들지 않습니다.
 `PI_CODING_AGENT_DIR`로 대상을 지정할 수 있습니다. 명시적으로 비활성화한
 `builtin:codemode`나 심볼릭 링크 설정 파일은 자동으로 덮어쓰지 않습니다.
@@ -92,7 +99,7 @@ bootstrap은 `.envrc`를 자동 생성하거나 승인하지 않습니다. 환�
 |---|---|
 | `process_content` | 이 저장소의 Git 패키지 |
 | Google Data Store 검색 확장 | 소스 보존·기본 비활성화; 필요할 때 명시적으로 로드 |
-| statusline·goal·usage | pi의 외부 npm 패키지 |
+| statusline·usage | pi의 외부 npm 패키지 |
 | Herdr 상태 연동 | Herdr가 설치·관리하는 확장 |
 | find-skills·herdr 스킬 | 사용자 skill 디렉터리, 이 저장소 밖 |
 

@@ -22,6 +22,13 @@ class BootstrapTests(unittest.TestCase):
             self.assertTrue((ROOT / resource).is_file())
         self.assertFalse(list((ROOT / "extensions").rglob("package-lock.json")))
 
+    def test_default_external_packages(self):
+        config = json.loads((ROOT / "config/packages.json").read_text())
+        self.assertEqual(config["external"], [
+            "npm:@narumitw/pi-statusline",
+            "npm:@narumitw/pi-usage",
+        ])
+
     def test_lockfile_version_matches(self):
         package = json.loads((ROOT / "package.json").read_text())
         lock = json.loads((ROOT / "package-lock.json").read_text())
@@ -83,7 +90,7 @@ class BootstrapTests(unittest.TestCase):
         self.run_bootstrap(fail=True)
 
     def test_later_package_failure_also_preserves_models(self):
-        self.run_bootstrap(fail="npm:@narumitw/pi-goal")
+        self.run_bootstrap(fail="npm:@narumitw/pi-usage")
 
     @unittest.skipUnless(shutil.which("pi"), "pi is not installed")
     def test_real_pi_honors_agent_directory(self):

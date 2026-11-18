@@ -2,7 +2,6 @@
   "repository": "github.com/woojung3/pi-bootstrap",
   "external": [
     "npm:@narumitw/pi-statusline",
-    "npm:@narumitw/pi-goal",
     "npm:@narumitw/pi-usage"
   ]
 }

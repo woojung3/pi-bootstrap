@@ -11,7 +11,8 @@
 | 선택 확장 | `pi-google-data-store-search` — 기본 비활성화, 필요할 때 명시적으로 로드 |
 | 자체 확장 | [`process_content`](extensions/process-content/README.md) — Codemode용 격리 콘텐츠 처리 |
 | 기본 도구 | Codemode 활성화 — 기존 도구 선택 보존 |
-| 외부 패키지 | `@narumitw/pi-statusline`, `@narumitw/pi-goal`, `@narumitw/pi-usage` |
+| 외부 패키지 | `@narumitw/pi-statusline`, `@narumitw/pi-usage` |
+| 시작 모델 | `config/pi-defaults.json` — `openai-codex/gpt-6.2-astra` |
 | 모델 설정 | `config/models.json` — LiteLLM 모델 catalog, API 키는 환경변수 참조 |
 
 Herdr 연동 확장은 Herdr가 관리합니다. `find-skills`·`herdr` 스킬도 이 저장소의
@@ -37,7 +38,7 @@ bootstrap은 설정을 검증한 뒤 버전이 고정된 Git 패키지와 외부
 확장만 설치하려면:
 
 ```sh
-pi install git:github.com/woojung3/pi-bootstrap@v0.7.1
+pi install git:github.com/woojung3/pi-bootstrap@v0.7.2
 ```
 
 ## 폰으로 보내기

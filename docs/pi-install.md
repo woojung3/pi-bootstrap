@@ -35,15 +35,15 @@ bootstrap은 패키지 설치 전에 설정 검증과 기존 settings 백업을 
 일부 패키지만 갱신될 수 있습니다. 이 경우 모델 catalog는 그대로이며 `pi list`를
 확인한 뒤 재시도합니다.
 
+시작 모델은 `config/pi-defaults.json`의 `openai-codex/gpt-6.2-astra`로 설정합니다.
 도구 기본값은 Codemode 활성화·Google Data Store 검색 비활성화입니다.
 `process_content`와 `phone-notify`는 루트 패키지로 배포합니다.
 기본 설정만 적용하려면 `python3 scripts/install-pi-tools.py`를 사용합니다.
 
-설치되는 패키지는 다음 네 개입니다.
+설치되는 패키지는 다음 세 개입니다.
 
-- `git:github.com/woojung3/pi-bootstrap@v0.7.1`
+- `git:github.com/woojung3/pi-bootstrap@v0.7.2`
 - `npm:@narumitw/pi-statusline`
-- `npm:@narumitw/pi-goal`
 - `npm:@narumitw/pi-usage`
 
 패키지 목록의 원본은 `config/packages.json`이며 확장이 늘어도 루트 Git 패키지로
@@ -73,3 +73,5 @@ pi update --extensions    # 설치 패키지 갱신; 고정 tag는 이동하지 
 실행합니다. `main`이나 로컬 소스를 수정하는 것만으로 설치본이 바뀌지는 않습니다.
 
 패키지 목록은 `pi list`, 제거는 `pi remove <source>`를 사용합니다.
+bootstrap의 설치 목록에서 빠진 패키지를 기존 환경에서 자동 제거하지는 않습니다.
+이미 설치된 불필요한 패키지는 명시적으로 제거하며, 이전 버전의 bootstrap은 당시 목록을 사용합니다.
